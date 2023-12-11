@@ -21,12 +21,20 @@ import java.util.Optional;
 public abstract class Annotation {
 
     private static final Logger logger = LoggerFactory.getLogger(Annotation.class);
+    @SerializedName(value = "id") private int id;
     @SerializedName(value = "owner") private Owner owner;
     @SerializedName(value = "link") private Link link;
 
     @Override
     public String toString() {
         return String.format("Annotation owned by %s and added by %s", owner, link);
+    }
+
+    /**
+     * @return the ID of this annotation, or 0 if not found
+     */
+    public int getId() {
+        return id;
     }
 
     /**

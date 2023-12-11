@@ -8,6 +8,7 @@ import qupath.ext.omero.OmeroServer;
 import qupath.ext.omero.core.WebClient;
 import qupath.ext.omero.core.WebClients;
 import qupath.ext.omero.core.entities.annotations.AnnotationGroup;
+import qupath.ext.omero.core.entities.annotations.MapAnnotation;
 import qupath.ext.omero.core.entities.imagemetadata.ImageMetadataResponse;
 import qupath.ext.omero.core.entities.permissions.Group;
 import qupath.ext.omero.core.entities.permissions.Owner;
@@ -27,9 +28,11 @@ import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class TestApisHandler extends OmeroServer {
 
@@ -455,6 +458,21 @@ public class TestApisHandler extends OmeroServer {
         }
 
         @Test
+        abstract void Check_Key_Value_Pairs_Sent() throws ExecutionException, InterruptedException;
+
+        @Test
+        abstract void Check_Key_Value_Pairs_Sent_When_Existing_Deleted() throws ExecutionException, InterruptedException;
+
+        @Test
+        abstract void Check_Key_Value_Pairs_Sent_When_Existing_Not_Deleted() throws ExecutionException, InterruptedException;
+
+        @Test
+        abstract void Check_Key_Value_Pairs_Sent_When_Existing_Replaced() throws ExecutionException, InterruptedException;
+
+        @Test
+        abstract void Check_Key_Value_Pairs_Sent_When_Existing_Not_Replaced() throws ExecutionException, InterruptedException;
+
+        @Test
         void Check_Dataset_Icon() throws ExecutionException, InterruptedException {
             Class<? extends RepositoryEntity> type = Dataset.class;
 
@@ -674,11 +692,47 @@ public class TestApisHandler extends OmeroServer {
 
     @Nested
     class UnauthenticatedClient extends GenericClient {
+        // Unauthenticated user has read-only access,
+        // so all write functions will fail
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createUnauthenticatedClient();
             apisHandler = client.getApisHandler();
+        }
+
+        @Test
+        @Override
+        void Check_Key_Value_Pairs_Sent() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getComplexImage();
+            Map<String, String> keyValues = Map.of(
+                    "A", "B",
+                    "C", "D"
+            );
+
+            boolean status = apisHandler.sendKeyValuePairs(image, keyValues, true, true).get();
+
+            Assertions.assertFalse(status);
+        }
+
+        @Override
+        void Check_Key_Value_Pairs_Sent_When_Existing_Deleted() {
+            // Empty because key values can't be sent, see Check_Key_Value_Pairs_Sent
+        }
+
+        @Override
+        void Check_Key_Value_Pairs_Sent_When_Existing_Not_Deleted() {
+            // Empty because key values can't be sent, see Check_Key_Value_Pairs_Sent
+        }
+
+        @Override
+        void Check_Key_Value_Pairs_Sent_When_Existing_Replaced() {
+            // Empty because key values can't be sent, see Check_Key_Value_Pairs_Sent
+        }
+
+        @Override
+        void Check_Key_Value_Pairs_Sent_When_Existing_Not_Replaced() {
+            // Empty because key values can't be sent, see Check_Key_Value_Pairs_Sent
         }
 
         @Test
@@ -689,7 +743,7 @@ public class TestApisHandler extends OmeroServer {
 
             boolean success = apisHandler.writeROIs(imageId, rois, true).get();
 
-            Assertions.assertFalse(success);    // unauthenticated user has read-only access
+            Assertions.assertFalse(success);
         }
     }
 
@@ -700,6 +754,177 @@ public class TestApisHandler extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
             apisHandler = client.getApisHandler();
+        }
+
+        @Test
+        @Override
+        void Check_Key_Value_Pairs_Sent() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getComplexImage();
+            Map<String, String> keyValues = Map.of(
+                    "A", "B",
+                    "C", "D"
+            );
+
+            boolean status = apisHandler.sendKeyValuePairs(image, keyValues, true, true).get();
+
+            Assertions.assertTrue(status);
+        }
+
+        @Override
+        void Check_Key_Value_Pairs_Sent_When_Existing_Deleted() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getComplexImage();
+            Map<String, String> existingKeyValues = Map.of(
+                    "existingKey", "existingValue"
+            );
+            apisHandler.sendKeyValuePairs(image, existingKeyValues, true, true).get();
+            Map<String, String> keyValuesToSend = Map.of(
+                    "A", "B",
+                    "C", "D"
+            );
+            Map<String, String> expectedKeyValues = Map.of(
+                    "A", "B",
+                    "C", "D"
+            );
+
+            apisHandler.sendKeyValuePairs(image, keyValuesToSend, true, true).get();
+
+            Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
+                    .map(AnnotationGroup::getAnnotations)
+                    .map(annotations-> annotations.get(MapAnnotation.class))
+                    .map(annotations -> annotations.stream()
+                            .filter(MapAnnotation.class::isInstance)
+                            .map(MapAnnotation.class::cast)
+                            .toList()
+                    )
+                    .map(annotations -> annotations.stream()
+                            .map(MapAnnotation::getValues)
+                            .flatMap (map -> map.entrySet().stream())
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    (value1, value2) -> value1
+                            ))
+                    )
+                    .orElse(Map.of());
+            Assertions.assertEquals(expectedKeyValues, keyValues);
+        }
+
+        @Override
+        void Check_Key_Value_Pairs_Sent_When_Existing_Not_Deleted() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getComplexImage();
+            Map<String, String> existingKeyValues = Map.of(
+                    "existingKey", "existingValue"
+            );
+            apisHandler.sendKeyValuePairs(image, existingKeyValues, true, true).get();
+            Map<String, String> keyValuesToSend = Map.of(
+                    "A", "B",
+                    "C", "D"
+            );
+            Map<String, String> expectedKeyValues = Map.of(
+                    "A", "B",
+                    "C", "D",
+                    "existingKey", "existingValue"
+            );
+
+            apisHandler.sendKeyValuePairs(image, keyValuesToSend, true, false).get();
+
+            Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
+                    .map(AnnotationGroup::getAnnotations)
+                    .map(annotations-> annotations.get(MapAnnotation.class))
+                    .map(annotations -> annotations.stream()
+                            .filter(MapAnnotation.class::isInstance)
+                            .map(MapAnnotation.class::cast)
+                            .toList()
+                    )
+                    .map(annotations -> annotations.stream()
+                            .map(MapAnnotation::getValues)
+                            .flatMap (map -> map.entrySet().stream())
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    (value1, value2) -> value1
+                            ))
+                    )
+                    .orElse(Map.of());
+            Assertions.assertEquals(expectedKeyValues, keyValues);
+        }
+
+        @Override
+        void Check_Key_Value_Pairs_Sent_When_Existing_Replaced() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getComplexImage();
+            Map<String, String> existingKeyValues = Map.of(
+                    "A", "existingValue"
+            );
+            apisHandler.sendKeyValuePairs(image, existingKeyValues, true, true).get();
+            Map<String, String> keyValuesToSend = Map.of(
+                    "A", "B",
+                    "C", "D"
+            );
+            Map<String, String> expectedKeyValues = Map.of(
+                    "A", "B",
+                    "C", "D"
+            );
+
+            apisHandler.sendKeyValuePairs(image, keyValuesToSend, true, true).get();
+
+            Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
+                    .map(AnnotationGroup::getAnnotations)
+                    .map(annotations-> annotations.get(MapAnnotation.class))
+                    .map(annotations -> annotations.stream()
+                            .filter(MapAnnotation.class::isInstance)
+                            .map(MapAnnotation.class::cast)
+                            .toList()
+                    )
+                    .map(annotations -> annotations.stream()
+                            .map(MapAnnotation::getValues)
+                            .flatMap (map -> map.entrySet().stream())
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    (value1, value2) -> value1
+                            ))
+                    )
+                    .orElse(Map.of());
+            Assertions.assertEquals(expectedKeyValues, keyValues);
+        }
+
+        @Override
+        void Check_Key_Value_Pairs_Sent_When_Existing_Not_Replaced() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getComplexImage();
+            Map<String, String> existingKeyValues = Map.of(
+                    "A", "existingValue"
+            );
+            apisHandler.sendKeyValuePairs(image, existingKeyValues, true, true).get();
+            Map<String, String> keyValuesToSend = Map.of(
+                    "A", "B",
+                    "C", "D"
+            );
+            Map<String, String> expectedKeyValues = Map.of(
+                    "A", "existingValue",
+                    "C", "D"
+            );
+
+            apisHandler.sendKeyValuePairs(image, keyValuesToSend, false, true).get();
+
+            Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
+                    .map(AnnotationGroup::getAnnotations)
+                    .map(annotations-> annotations.get(MapAnnotation.class))
+                    .map(annotations -> annotations.stream()
+                            .filter(MapAnnotation.class::isInstance)
+                            .map(MapAnnotation.class::cast)
+                            .toList()
+                    )
+                    .map(annotations -> annotations.stream()
+                            .map(MapAnnotation::getValues)
+                            .flatMap (map -> map.entrySet().stream())
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    (value1, value2) -> value1
+                            ))
+                    )
+                    .orElse(Map.of());
+            Assertions.assertEquals(expectedKeyValues, keyValues);
         }
 
         @Test

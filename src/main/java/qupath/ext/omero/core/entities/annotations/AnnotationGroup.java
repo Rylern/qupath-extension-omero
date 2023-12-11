@@ -17,7 +17,7 @@ import java.util.Map;
 public class AnnotationGroup {
 
     private static final Logger logger = LoggerFactory.getLogger(AnnotationGroup.class);
-    private final Map<Class<? extends Annotation>, List<Annotation>> annotations;
+    private final Map<Class<? extends Annotation>, List<Annotation>> annotations = new HashMap<>();
 
     /**
      * Creates an annotation group from a JSON object.
@@ -25,7 +25,7 @@ public class AnnotationGroup {
      * @param json the JSON supposed to contain the annotation group.
      */
     public AnnotationGroup(JsonObject json) {
-        this.annotations = createAnnotations(json, createExperimenters(json));
+        createAnnotations(json, createExperimenters(json));
     }
 
     @Override
@@ -58,40 +58,34 @@ public class AnnotationGroup {
         return annotations;
     }
 
-    private static Map<Class<? extends Annotation>, List<Annotation>> createAnnotations(JsonObject json, List<Experimenter> experimenters) {
+    private void createAnnotations(JsonObject json, List<Experimenter> experimenters) {
         Gson gson = new GsonBuilder().registerTypeAdapter(Annotation.class, new Annotation.GsonOmeroAnnotationDeserializer()).setLenient().create();
-
-        Map<Class<? extends Annotation>, List<Annotation>> annotations = new HashMap<>();
-
         JsonElement annotationsJSON = json.get("annotations");
-        if (annotationsJSON != null) {
-            try {
-                JsonArray annotationsArray = annotationsJSON.getAsJsonArray();
 
-                for (var jsonAnn: annotationsArray) {
-                    try {
-                        Annotation annotation = gson.fromJson(jsonAnn, Annotation.class);
-                        if (annotation != null) {
-                            annotation.updateAdderAndOwner(experimenters);
+        if (annotationsJSON != null && annotationsJSON.isJsonArray()) {
+            JsonArray annotationsArray = annotationsJSON.getAsJsonArray();
 
-                            if (annotations.containsKey(annotation.getClass())) {
-                                annotations.get(annotation.getClass()).add(annotation);
-                            } else {
-                                List<Annotation> annotationsForClass = new ArrayList<>();
-                                annotationsForClass.add(annotation);
-                                annotations.put(annotation.getClass(), annotationsForClass);
-                            }
-                        }
-                    } catch (JsonSyntaxException e) {
-                        logger.error("Error when reading " + jsonAnn, e);
+            for (JsonElement jsonAnnotation: annotationsArray) {
+                Annotation annotation = null;
+                try {
+                    annotation = gson.fromJson(jsonAnnotation, Annotation.class);
+                } catch (JsonSyntaxException e) {
+                    logger.warn("Error when reading " + jsonAnnotation, e);
+                }
+
+                if (annotation != null) {
+                    annotation.updateAdderAndOwner(experimenters);
+
+                    if (annotations.containsKey(annotation.getClass())) {
+                        annotations.get(annotation.getClass()).add(annotation);
+                    } else {
+                        List<Annotation> annotationsForClass = new ArrayList<>();
+                        annotationsForClass.add(annotation);
+                        annotations.put(annotation.getClass(), annotationsForClass);
                     }
                 }
-            } catch (IllegalStateException e) {
-                logger.error("Could not convert " + annotationsJSON + " to JSON array", e);
             }
         }
-
-        return annotations;
     }
 
     private static List<Experimenter> createExperimenters(JsonObject json) {
@@ -100,22 +94,20 @@ public class AnnotationGroup {
         List<Experimenter> experimenters = new ArrayList<>();
 
         JsonElement experimentersJSON = json.get("experimenters");
-        if (experimentersJSON != null) {
-            try {
-                JsonArray experimentersArray = experimentersJSON.getAsJsonArray();
+        if (experimentersJSON != null && experimentersJSON.isJsonArray()) {
+            JsonArray experimentersArray = experimentersJSON.getAsJsonArray();
 
-                for (var jsonExp: experimentersArray) {
-                    try {
-                        Experimenter experimenter = gson.fromJson(jsonExp, Experimenter.class);
-                        if (experimenter != null) {
-                            experimenters.add(experimenter);
-                        }
-                    } catch (JsonSyntaxException e) {
-                        logger.error("Error when reading " + jsonExp, e);
-                    }
+            for (var jsonExperimenter: experimentersArray) {
+                Experimenter experimenter = null;
+                try {
+                    experimenter = gson.fromJson(jsonExperimenter, Experimenter.class);
+                } catch (JsonSyntaxException e) {
+                    logger.warn("Error when reading " + jsonExperimenter, e);
                 }
-            } catch (IllegalStateException e) {
-                logger.error("Could not convert " + experimentersJSON + " to JSON array", e);
+
+                if (experimenter != null) {
+                    experimenters.add(experimenter);
+                }
             }
         }
 

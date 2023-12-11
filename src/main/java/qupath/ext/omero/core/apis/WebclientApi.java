@@ -1,9 +1,14 @@
 package qupath.ext.omero.core.apis;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import qupath.ext.omero.core.entities.annotations.Annotation;
 import qupath.ext.omero.core.entities.annotations.AnnotationGroup;
+import qupath.ext.omero.core.entities.annotations.MapAnnotation;
 import qupath.ext.omero.core.entities.repositoryentities.serverentities.*;
 import qupath.ext.omero.core.entities.repositoryentities.serverentities.image.Image;
 import qupath.ext.omero.core.entities.search.SearchQuery;
@@ -13,11 +18,15 @@ import qupath.ext.omero.core.RequestSender;
 
 import java.awt.image.BufferedImage;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>API to communicate with a OMERO.web server.</p>
@@ -38,6 +47,7 @@ class WebclientApi implements AutoCloseable {
     private final static String SEARCH_URL = "%s/webclient/load_searching/form/" +
             "?query=%s&%s&%s&searchGroup=%s&ownedBy=%s" +
             "&useAcquisitionDate=false&startdateinput=&enddateinput=&_=%d";
+    private final static String WRITE_KEY_VALUES_URL = "%s/webclient/annotate_map/";
     private static final String IMAGE_ICON_URL = "%s/static/webclient/image/image16.png";
     private static final String SCREEN_ICON_URL = "%s/static/webclient/image/folder_screen16.png";
     private static final String PLATE_ICON_URL = "%s/static/webclient/image/folder_plate16.png";
@@ -256,6 +266,86 @@ class WebclientApi implements AutoCloseable {
     }
 
     /**
+     * <p>
+     *     Send key value pairs associated with an image to the OMERO server.
+     * </p>
+     * <p>This function is asynchronous.</p>
+     *
+     * @param image  the image to associate the key value pairs
+     * @param keyValues  the key value pairs to send
+     * @param replaceExisting  whether to replace values when keys already exist on the OMERO server
+     * @param deleteExisting  whether to delete all existing key value pairs on the OMERO server
+     * @return a CompletableFuture indicating the success of the operation
+     */
+    public CompletableFuture<Boolean> sendKeyValuePairs(
+            Image image,
+            Map<String, String> keyValues,
+            boolean replaceExisting,
+            boolean deleteExisting
+    ) {
+        var uri = WebUtilities.createURI(String.format(
+                WRITE_KEY_VALUES_URL,
+                host
+        ));
+
+        if (uri.isPresent()) {
+            return removeAndReturnExistingMapAnnotations(uri.get(), image).thenCompose(existingAnnotations -> {
+                Map<String, String> keyValuesToSend;
+                if (deleteExisting) {
+                    keyValuesToSend = keyValues;
+                } else {
+                    Map<String, String> existingKeyValues = existingAnnotations.stream()
+                            .map(MapAnnotation::getValues)
+                            .flatMap (map -> map.entrySet().stream())
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    (value1, value2) -> value1
+                            ));
+
+                    keyValuesToSend = Stream.of(keyValues, existingKeyValues)
+                            .flatMap(map -> map.entrySet().stream())
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    (value1, value2) -> replaceExisting ? value1 : value2
+                            ));
+                }
+
+                return RequestSender.post(
+                        uri.get(),
+                        String.format(
+                                "image=%d&mapAnnotation=%s",
+                                image.getId(),
+                                URLEncoder.encode(
+                                        keyValuesToSend.keySet().stream()
+                                                .map(key -> String.format("[\"%s\",\"%s\"]", key, keyValuesToSend.get(key)))
+                                                .collect(Collectors.joining(",", "[", "]")),
+                                        StandardCharsets.UTF_8
+                                )
+                        ).getBytes(StandardCharsets.UTF_8),
+                        "",
+                        token
+                ).thenApply(rawResponse -> {
+                    if (rawResponse.isPresent()) {
+                        Gson gson = new Gson();
+                        try {
+                            Map<String, List<String>> response = gson.fromJson(rawResponse.get(), new TypeToken<>() {});
+                            return response != null && response.containsKey("annId");
+                        } catch (JsonSyntaxException e) {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                });
+            });
+        } else {
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    /**
      * <p>Attempt to retrieve the OMERO image icon.</p>
      * <p>This function is asynchronous.</p>
      *
@@ -293,5 +383,31 @@ class WebclientApi implements AutoCloseable {
      */
     public CompletableFuture<Optional<BufferedImage>> getPlateAcquisitionIcon() {
         return ApiUtilities.getImage(String.format(PLATE_ACQUISITION_ICON_URL, host));
+    }
+
+    private CompletableFuture<List<MapAnnotation>> removeAndReturnExistingMapAnnotations(URI uri, Image image) {
+        return getAnnotations(image).thenApplyAsync(annotationGroupResponse -> {
+            List<MapAnnotation> existingAnnotations = annotationGroupResponse
+                    .map(annotationGroup -> annotationGroup.getAnnotations().get(MapAnnotation.class))
+                    .map(annotations -> annotations.stream()
+                            .filter(MapAnnotation.class::isInstance)
+                            .map(MapAnnotation.class::cast)
+                            .toList()
+                    )
+                    .orElse(List.of());
+
+            existingAnnotations.stream()
+                    .map(Annotation::getId)
+                    .map(id -> String.format("image=%d&annId=%d&mapAnnotation=\"\"", image.getId(), id))
+                    .map(body -> RequestSender.post(
+                            uri,
+                            body.getBytes(StandardCharsets.UTF_8),
+                            "",
+                            token
+                    ))
+                    .forEach(CompletableFuture::join);
+
+            return existingAnnotations;
+        });
     }
 }
