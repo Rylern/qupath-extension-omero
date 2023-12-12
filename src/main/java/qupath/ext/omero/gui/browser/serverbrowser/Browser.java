@@ -157,7 +157,7 @@ public class Browser extends Stage {
     private void onMoreInformationMenuClicked(ActionEvent ignoredEvent) {
         var selectedItem = hierarchy.getSelectionModel().getSelectedItem();
         if (selectedItem != null && selectedItem.getValue() instanceof ServerEntity serverEntity) {
-            client.getApisHandler().getAnnotations(serverEntity).thenAccept(annotations -> Platform.runLater(() -> {
+            client.getApisHandler().getAnnotations(serverEntity.getId(), serverEntity.getClass()).thenAccept(annotations -> Platform.runLater(() -> {
                 if (annotations.isPresent()) {
                     try {
                         new AdvancedInformation(this, serverEntity, annotations.get());

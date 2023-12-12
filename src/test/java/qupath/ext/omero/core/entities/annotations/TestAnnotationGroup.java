@@ -19,7 +19,7 @@ public class TestAnnotationGroup {
     }
 
     @Test
-    void Check_2_Annotations_Created() {
+    void Check_Two_Annotations_Created() {
         AnnotationGroup annotationGroup = createAnnotationGroup("""
                 {
                     "class": "comment"
@@ -35,7 +35,7 @@ public class TestAnnotationGroup {
     }
 
     @Test
-    void Check_2_Comment_Annotations_Created() {
+    void Check_Two_Comment_Annotations_Created() {
         AnnotationGroup annotationGroup = createAnnotationGroup("""
                 {
                     "class": "comment"
@@ -48,6 +48,22 @@ public class TestAnnotationGroup {
         Map<Class<? extends Annotation>, List<Annotation>> annotations = annotationGroup.getAnnotations();
 
         Assertions.assertEquals(2, annotations.get(CommentAnnotation.class).size());
+    }
+
+    @Test
+    void Check_Two_Comment_Annotations_Can_Be_Retrieved() {
+        AnnotationGroup annotationGroup = createAnnotationGroup("""
+                {
+                    "class": "comment"
+                },
+                {
+                    "class": "comment"
+                }
+                """);
+
+        List<CommentAnnotation> annotations = annotationGroup.getAnnotationsOfClass(CommentAnnotation.class);
+
+        Assertions.assertEquals(2, annotations.size());
     }
 
     private AnnotationGroup createAnnotationGroup(String annotations) {

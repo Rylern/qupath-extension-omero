@@ -58,6 +58,20 @@ public class AnnotationGroup {
         return annotations;
     }
 
+    /**
+     * Return all annotations belonging to the provided class.
+     *
+     * @param annotationClass  the class of the annotations to retrieve
+     * @return all annotations belonging to the provided class
+     * @param <T> the type of annotation to retrieve
+     */
+    public <T extends Annotation> List<T> getAnnotationsOfClass(Class<T> annotationClass) {
+        return annotations.getOrDefault(annotationClass, List.of()).stream()
+                .filter(annotationClass::isInstance)
+                .map(annotationClass::cast)
+                .toList();
+    }
+
     private void createAnnotations(JsonObject json, List<Experimenter> experimenters) {
         Gson gson = new GsonBuilder().registerTypeAdapter(Annotation.class, new Annotation.GsonOmeroAnnotationDeserializer()).setLenient().create();
         JsonElement annotationsJSON = json.get("annotations");

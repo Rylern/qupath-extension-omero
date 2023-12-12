@@ -43,8 +43,8 @@ import java.util.ResourceBundle;
  * <ul>
  *     <li>A browse menu, described in {@link qupath.ext.omero.gui.browser browser}.</li>
  *     <li>A connection manager action, described in {@link qupath.ext.omero.gui.connectionsmanager connection manager}.</li>
- *     <li>An annotation sender action, described in {@link qupath.ext.omero.gui.annotationsender annotation sender}.</li>
- *     <li>An annotation importer action, described in {@link qupath.ext.omero.gui.annotationimporter annotation importer}.</li>
+ *     <li>A menu to send entities to OMERO, described in {@link qupath.ext.omero.gui.sender sender}.</li>
+ *     <li>A menu to import entities from OMERO, described in {@link qupath.ext.omero.gui.importer importer}.</li>
  * </ul>
  */
 public class OmeroExtension implements QuPathExtension, GitHubProject {

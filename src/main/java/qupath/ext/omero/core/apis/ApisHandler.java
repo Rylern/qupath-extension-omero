@@ -331,10 +331,13 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebclientApi#getAnnotations(ServerEntity)}.
+     * See {@link WebclientApi#getAnnotations(long, Class)}.
      */
-    public CompletableFuture<Optional<AnnotationGroup>> getAnnotations(ServerEntity entity) {
-        return webclientApi.getAnnotations(entity);
+    public CompletableFuture<Optional<AnnotationGroup>> getAnnotations(
+            long entityId,
+            Class<? extends RepositoryEntity> entityClass
+    ) {
+        return webclientApi.getAnnotations(entityId, entityClass);
     }
 
     /**

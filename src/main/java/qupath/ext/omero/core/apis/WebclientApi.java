@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import qupath.ext.omero.core.entities.annotations.Annotation;
 import qupath.ext.omero.core.entities.annotations.AnnotationGroup;
 import qupath.ext.omero.core.entities.annotations.MapAnnotation;
+import qupath.ext.omero.core.entities.repositoryentities.RepositoryEntity;
 import qupath.ext.omero.core.entities.repositoryentities.serverentities.*;
 import qupath.ext.omero.core.entities.repositoryentities.serverentities.image.Image;
 import qupath.ext.omero.core.entities.search.SearchQuery;
@@ -181,26 +182,30 @@ class WebclientApi implements AutoCloseable {
      * </p>
      * <p>This function is asynchronous.</p>
      *
-     * @param entity  the type of the entity whose annotation should be retrieved.
+     * @param entityId  the ID of the entity
+     * @param entityClass  the class of the entity whose annotation should be retrieved.
      *                Must be an {@link Image}, {@link Dataset}, {@link Project},
      *                {@link Screen}, {@link Plate}, or {@link PlateAcquisition}.
      * @return a CompletableFuture with the annotation, or an empty Optional if an error occurred
      * @throws IllegalArgumentException when the provided entity is not an image, dataset, project,
      * screen, plate, or plate acquisition
      */
-    public CompletableFuture<Optional<AnnotationGroup>> getAnnotations(ServerEntity entity) {
-        if (!TYPE_TO_URI_LABEL.containsKey(entity.getClass())) {
+    public CompletableFuture<Optional<AnnotationGroup>> getAnnotations(
+            long entityId,
+            Class<? extends RepositoryEntity> entityClass
+    ) {
+        if (!TYPE_TO_URI_LABEL.containsKey(entityClass)) {
             throw new IllegalArgumentException(String.format(
-                    "The provided item (%s) is not an image, dataset, project, screen, plate, or plate acquisition.",
-                    entity
+                    "The provided item (%d) is not an image, dataset, project, screen, plate, or plate acquisition.",
+                    entityId
             ));
         }
 
         var uri = WebUtilities.createURI(String.format(
                 READ_ANNOTATION_URL,
                 host,
-                TYPE_TO_URI_LABEL.get(entity.getClass()),
-                entity.getId()
+                TYPE_TO_URI_LABEL.get(entityClass),
+                entityId
         ));
 
         if (uri.isPresent()) {
@@ -294,16 +299,7 @@ class WebclientApi implements AutoCloseable {
                 if (deleteExisting) {
                     keyValuesToSend = keyValues;
                 } else {
-                    Map<String, String> existingKeyValues = existingAnnotations.stream()
-                            .map(MapAnnotation::getValues)
-                            .flatMap (map -> map.entrySet().stream())
-                            .collect(Collectors.toMap(
-                                    Map.Entry::getKey,
-                                    Map.Entry::getValue,
-                                    (value1, value2) -> value1
-                            ));
-
-                    keyValuesToSend = Stream.of(keyValues, existingKeyValues)
+                    keyValuesToSend = Stream.of(keyValues, MapAnnotation.getCombinedValues(existingAnnotations))
                             .flatMap(map -> map.entrySet().stream())
                             .collect(Collectors.toMap(
                                     Map.Entry::getKey,
@@ -386,14 +382,9 @@ class WebclientApi implements AutoCloseable {
     }
 
     private CompletableFuture<List<MapAnnotation>> removeAndReturnExistingMapAnnotations(URI uri, long imageId) {
-        return getAnnotations(new Image(imageId)).thenApplyAsync(annotationGroupResponse -> {
+        return getAnnotations(imageId, Image.class).thenApplyAsync(annotationGroupResponse -> {
             List<MapAnnotation> existingAnnotations = annotationGroupResponse
-                    .map(annotationGroup -> annotationGroup.getAnnotations().get(MapAnnotation.class))
-                    .map(annotations -> annotations.stream()
-                            .filter(MapAnnotation.class::isInstance)
-                            .map(MapAnnotation.class::cast)
-                            .toList()
-                    )
+                    .map(annotationGroup -> annotationGroup.getAnnotationsOfClass(MapAnnotation.class))
                     .orElse(List.of());
 
             existingAnnotations.stream()

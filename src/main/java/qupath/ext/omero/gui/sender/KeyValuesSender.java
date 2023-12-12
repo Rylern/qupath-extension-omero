@@ -73,7 +73,7 @@ class KeyValuesSender {
                 try {
                     keyValuesForm = new KeyValuesForm();
                 } catch (IOException e) {
-                    logger.error("Error when creating the annotation form", e);
+                    logger.error("Error when creating the key values form", e);
                     Dialogs.showErrorMessage(
                             resources.getString("KeyValuesSender.sendKeyValues"),
                             e.getLocalizedMessage()
@@ -82,7 +82,7 @@ class KeyValuesSender {
                 }
 
                 boolean confirmed = Dialogs.showConfirmDialog(
-                        resources.getString("AnnotationsSender.dataToSend"),
+                        resources.getString("KeyValuesSender.sendKeyValues"),
                         keyValuesForm
                 );
 

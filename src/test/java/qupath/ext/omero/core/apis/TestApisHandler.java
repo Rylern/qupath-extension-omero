@@ -430,7 +430,10 @@ public class TestApisHandler extends OmeroServer {
         void Check_Annotations() throws ExecutionException, InterruptedException {
             AnnotationGroup expectedAnnotationGroup = OmeroServer.getDatasetAnnotationGroup();
 
-            AnnotationGroup annotationGroup = apisHandler.getAnnotations(OmeroServer.getDataset()).get().orElse(null);
+            AnnotationGroup annotationGroup = apisHandler.getAnnotations(
+                    OmeroServer.getDataset().getId(),
+                    Dataset.class
+            ).get().orElse(null);
 
             Assertions.assertEquals(expectedAnnotationGroup, annotationGroup);
         }
@@ -788,14 +791,8 @@ public class TestApisHandler extends OmeroServer {
 
             apisHandler.sendKeyValuePairs(image.getId(), keyValuesToSend, true, true).get();
 
-            Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
-                    .map(AnnotationGroup::getAnnotations)
-                    .map(annotations-> annotations.get(MapAnnotation.class))
-                    .map(annotations -> annotations.stream()
-                            .filter(MapAnnotation.class::isInstance)
-                            .map(MapAnnotation.class::cast)
-                            .toList()
-                    )
+            Map<String, String> keyValues = apisHandler.getAnnotations(image.getId(), Image.class).get()
+                    .map(annotationGroup -> annotationGroup.getAnnotationsOfClass(MapAnnotation.class))
                     .map(annotations -> annotations.stream()
                             .map(MapAnnotation::getValues)
                             .flatMap (map -> map.entrySet().stream())
@@ -828,14 +825,8 @@ public class TestApisHandler extends OmeroServer {
 
             apisHandler.sendKeyValuePairs(image.getId(), keyValuesToSend, true, false).get();
 
-            Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
-                    .map(AnnotationGroup::getAnnotations)
-                    .map(annotations-> annotations.get(MapAnnotation.class))
-                    .map(annotations -> annotations.stream()
-                            .filter(MapAnnotation.class::isInstance)
-                            .map(MapAnnotation.class::cast)
-                            .toList()
-                    )
+            Map<String, String> keyValues = apisHandler.getAnnotations(image.getId(), Image.class).get()
+                    .map(annotationGroup -> annotationGroup.getAnnotationsOfClass(MapAnnotation.class))
                     .map(annotations -> annotations.stream()
                             .map(MapAnnotation::getValues)
                             .flatMap (map -> map.entrySet().stream())
@@ -867,14 +858,8 @@ public class TestApisHandler extends OmeroServer {
 
             apisHandler.sendKeyValuePairs(image.getId(), keyValuesToSend, true, true).get();
 
-            Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
-                    .map(AnnotationGroup::getAnnotations)
-                    .map(annotations-> annotations.get(MapAnnotation.class))
-                    .map(annotations -> annotations.stream()
-                            .filter(MapAnnotation.class::isInstance)
-                            .map(MapAnnotation.class::cast)
-                            .toList()
-                    )
+            Map<String, String> keyValues = apisHandler.getAnnotations(image.getId(), Image.class).get()
+                    .map(annotationGroup -> annotationGroup.getAnnotationsOfClass(MapAnnotation.class))
                     .map(annotations -> annotations.stream()
                             .map(MapAnnotation::getValues)
                             .flatMap (map -> map.entrySet().stream())
@@ -906,14 +891,8 @@ public class TestApisHandler extends OmeroServer {
 
             apisHandler.sendKeyValuePairs(image.getId(), keyValuesToSend, false, true).get();
 
-            Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
-                    .map(AnnotationGroup::getAnnotations)
-                    .map(annotations-> annotations.get(MapAnnotation.class))
-                    .map(annotations -> annotations.stream()
-                            .filter(MapAnnotation.class::isInstance)
-                            .map(MapAnnotation.class::cast)
-                            .toList()
-                    )
+            Map<String, String> keyValues = apisHandler.getAnnotations(image.getId(), Image.class).get()
+                    .map(annotationGroup -> annotationGroup.getAnnotationsOfClass(MapAnnotation.class))
                     .map(annotations -> annotations.stream()
                             .map(MapAnnotation::getValues)
                             .flatMap (map -> map.entrySet().stream())

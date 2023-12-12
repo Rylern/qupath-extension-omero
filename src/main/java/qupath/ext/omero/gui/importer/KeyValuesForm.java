@@ -1,4 +1,4 @@
-package qupath.ext.omero.gui.sender;
+package qupath.ext.omero.gui.importer;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.RadioButton;
@@ -10,9 +10,9 @@ import java.io.IOException;
 
 /**
  * Form that can be used in a dialog to let the user choose
- * some parameters when sending key value pairs to an OMERO server.
+ * some parameters when importing key value pairs from an OMERO server.
  */
-class KeyValuesForm extends VBox {
+public class KeyValuesForm extends VBox {
 
     @FXML
     private RadioButton keepExisting;
@@ -23,7 +23,7 @@ class KeyValuesForm extends VBox {
 
     /**
      * Describes how to deal with existing key value pairs
-     * when sending some to an OMERO server.
+     * when importing some from an OMERO server.
      */
     public enum Choice {
         KEEP_EXISTING,

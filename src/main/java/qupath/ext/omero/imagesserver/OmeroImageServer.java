@@ -141,31 +141,32 @@ public class OmeroImageServer extends AbstractTileableImageServer implements Pat
 
     @Override
     public Collection<PathObject> readPathObjects() {
+        List<Shape> shapes;
         try {
-            List<Shape> shapes = client.getApisHandler().getROIs(id).get();
-
-            Map<UUID, UUID> idToParentId = new HashMap<>();
-            Map<UUID, PathObject> idToPathObject = new HashMap<>();
-            for (Shape shape: shapes) {
-                UUID id = shape.getQuPathId();
-                idToPathObject.put(id, shape.createPathObject());
-                idToParentId.put(id, shape.getQuPathParentId().orElse(null));
-            }
-
-            List<PathObject> pathObjects = new ArrayList<>();
-            for (Map.Entry<UUID, UUID> entry: idToParentId.entrySet()) {
-                if (idToPathObject.containsKey(entry.getValue())) {
-                    idToPathObject.get(entry.getValue()).addChildObject(idToPathObject.get(entry.getKey()));
-                } else {
-                    pathObjects.add(idToPathObject.get(entry.getKey()));
-                }
-            }
-
-            return pathObjects;
+            shapes = client.getApisHandler().getROIs(id).get();
         } catch (InterruptedException | ExecutionException e) {
             logger.error("Error reading path objects", e);
             return Collections.emptyList();
         }
+
+        Map<UUID, UUID> idToParentId = new HashMap<>();
+        Map<UUID, PathObject> idToPathObject = new HashMap<>();
+        for (Shape shape: shapes) {
+            UUID id = shape.getQuPathId();
+            idToPathObject.put(id, shape.createPathObject());
+            idToParentId.put(id, shape.getQuPathParentId().orElse(null));
+        }
+
+        List<PathObject> pathObjects = new ArrayList<>();
+        for (Map.Entry<UUID, UUID> entry: idToParentId.entrySet()) {
+            if (idToPathObject.containsKey(entry.getValue())) {
+                idToPathObject.get(entry.getValue()).addChildObject(idToPathObject.get(entry.getKey()));
+            } else {
+                pathObjects.add(idToPathObject.get(entry.getKey()));
+            }
+        }
+
+        return pathObjects;
     }
 
     @Override
