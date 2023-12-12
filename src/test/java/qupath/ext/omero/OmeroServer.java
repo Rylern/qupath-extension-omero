@@ -188,7 +188,7 @@ public abstract class OmeroServer {
                 // Set up the OMERO web container (by installing the pixel buffer microservice)
                 Container.ExecResult omeroWebInstallPixelMsResult = omeroWeb.execInContainerWithUser(
                         "root",
-                        "/resources/installPixelMs.sh"
+                        "/resources/installPixelBufferMs.sh"
                 );
                 logCommandResult(omeroWebInstallPixelMsResult);
 
