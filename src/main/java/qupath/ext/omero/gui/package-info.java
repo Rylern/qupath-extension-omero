@@ -2,12 +2,12 @@
  * This package contains all UI elements of the extension.
  * <ul>
  *     <li>
- *         The {@link qupath.ext.omero.gui.annotationsender AnnotationSender} package
- *         can send annotations of the current image to the corresponding OMERO server.
+ *         The {@link qupath.ext.omero.gui.sender Sender} package
+ *         can send several entities of the current image to the corresponding OMERO server.
  *     </li>
  *     <li>
- *         The {@link qupath.ext.omero.gui.annotationimporter AnnotationImporter} package
- *         can import annotations to the current image from the corresponding OMERO server.
+ *         The {@link qupath.ext.omero.gui.importer Importer} package
+ *         can import several entities to the current image from the corresponding OMERO server.
  *     </li>
  *     <li>
  *         The {@link qupath.ext.omero.gui.browser Browser} package contains windows

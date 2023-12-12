@@ -1,4 +1,4 @@
-package qupath.ext.omero.gui.annotationimporter;
+package qupath.ext.omero.gui.importer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ import java.util.ResourceBundle;
  *     to prompt the user for parameters.
  * </p>
  */
-public class AnnotationImporter {
+class AnnotationImporter {
 
     private static final Logger logger = LoggerFactory.getLogger(AnnotationImporter.class);
     private static final ResourceBundle resources = UiUtilities.getResources();
@@ -46,7 +46,7 @@ public class AnnotationImporter {
 
     /**
      * Attempt to import annotations to the currently opened image from the corresponding OMERO server.
-     * This method doesn't return anything but will show a dialog indicating the success of the operation.
+     * This method doesn't return anything but will show dialogs and notifications indicating the success of the operation.
      */
     public static void importAnnotations() {
         var viewer = QuPathGUI.getInstance().getViewer();

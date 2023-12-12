@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.layout.VBox?>
+
+<fx:root type="VBox" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <Label text="%KeyValuesImporter.keyValuesForm.selectOptions" />
+        <RadioButton fx:id="keepExisting" mnemonicParsing="false" text="%KeyValuesImporter.keyValuesForm.keepExisting" />
+        <RadioButton fx:id="replaceExisting" mnemonicParsing="false" text="%KeyValuesImporter.keyValuesForm.replaceExisting" />
+        <RadioButton fx:id="deleteAll" mnemonicParsing="false" selected="true" text="%KeyValuesImporter.keyValuesForm.deleteAll" />
+    </children>
+</fx:root>

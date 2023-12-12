@@ -331,10 +331,13 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebclientApi#getAnnotations(ServerEntity)}.
+     * See {@link WebclientApi#getAnnotations(long, Class)}.
      */
-    public CompletableFuture<Optional<AnnotationGroup>> getAnnotations(ServerEntity entity) {
-        return webclientApi.getAnnotations(entity);
+    public CompletableFuture<Optional<AnnotationGroup>> getAnnotations(
+            long entityId,
+            Class<? extends RepositoryEntity> entityClass
+    ) {
+        return webclientApi.getAnnotations(entityId, entityClass);
     }
 
     /**
@@ -342,6 +345,18 @@ public class ApisHandler implements AutoCloseable {
      */
     public CompletableFuture<List<SearchResult>> getSearchResults(SearchQuery searchQuery) {
         return webclientApi.getSearchResults(searchQuery);
+    }
+
+    /**
+     * See {@link WebclientApi#sendKeyValuePairs(long, Map, boolean, boolean)}.
+     */
+    public CompletableFuture<Boolean> sendKeyValuePairs(
+            long imageId,
+            Map<String, String> keyValues,
+            boolean replaceExisting,
+            boolean deleteExisting
+    ) {
+        return webclientApi.sendKeyValuePairs(imageId, keyValues, replaceExisting, deleteExisting);
     }
 
     /**

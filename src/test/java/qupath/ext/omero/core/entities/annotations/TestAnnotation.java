@@ -12,6 +12,16 @@ import java.util.List;
 public class TestAnnotation {
 
     @Test
+    void Check_Id() {
+        int expectedId = 76;
+        Annotation annotation = createAnnotation();
+
+        int id = annotation.getId();
+
+        Assertions.assertEquals(expectedId, id);
+    }
+
+    @Test
     void Check_Adder() {
         Annotation annotation = createAnnotation();
 
@@ -121,6 +131,7 @@ public class TestAnnotation {
         String json = String.format(
                 """
                 {
+                    "id": 76,
                     "owner": %s,
                     "link": %s
                 }

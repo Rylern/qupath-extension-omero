@@ -22,18 +22,17 @@
 package qupath.ext.omero;
 
 import javafx.scene.control.SeparatorMenuItem;
-import org.controlsfx.control.action.Action;
 
 import qupath.ext.omero.gui.UiUtilities;
 import qupath.ext.omero.gui.browser.BrowseMenu;
+import qupath.ext.omero.gui.importer.ImporterMenu;
+import qupath.ext.omero.gui.sender.SenderMenu;
 import qupath.lib.common.Version;
 import qupath.lib.gui.actions.ActionTools;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.extensions.GitHubProject;
 import qupath.lib.gui.extensions.QuPathExtension;
 import qupath.lib.gui.tools.MenuTools;
-import qupath.ext.omero.gui.annotationimporter.AnnotationImporter;
-import qupath.ext.omero.gui.annotationsender.AnnotationSender;
 import qupath.ext.omero.gui.connectionsmanager.ConnectionsManagerCommand;
 
 import java.util.ResourceBundle;
@@ -44,8 +43,8 @@ import java.util.ResourceBundle;
  * <ul>
  *     <li>A browse menu, described in {@link qupath.ext.omero.gui.browser browser}.</li>
  *     <li>A connection manager action, described in {@link qupath.ext.omero.gui.connectionsmanager connection manager}.</li>
- *     <li>An annotation sender action, described in {@link qupath.ext.omero.gui.annotationsender annotation sender}.</li>
- *     <li>An annotation importer action, described in {@link qupath.ext.omero.gui.annotationimporter annotation importer}.</li>
+ *     <li>A menu to send entities to OMERO, described in {@link qupath.ext.omero.gui.sender sender}.</li>
+ *     <li>A menu to import entities from OMERO, described in {@link qupath.ext.omero.gui.importer importer}.</li>
  * </ul>
  */
 public class OmeroExtension implements QuPathExtension, GitHubProject {
@@ -62,21 +61,16 @@ public class OmeroExtension implements QuPathExtension, GitHubProject {
 
 			browseMenu = new BrowseMenu();
 
-			Action connectionManager = ActionTools.createAction(new ConnectionsManagerCommand(qupath.getStage()), ConnectionsManagerCommand.getMenuTitle());
-
-			Action actionSendAnnotations = ActionTools.createAction(AnnotationSender::sendAnnotations, AnnotationSender.getMenuTitle());
-			actionSendAnnotations.disabledProperty().bind(qupath.imageDataProperty().isNull());
-
-			Action actionImportAnnotations = ActionTools.createAction(AnnotationImporter::importAnnotations, AnnotationImporter.getMenuTitle());
-			actionImportAnnotations.disabledProperty().bind(qupath.imageDataProperty().isNull());
-
 			MenuTools.addMenuItems(qupath.getMenu("Extensions", false),
 					MenuTools.createMenu("OMERO",
 							browseMenu,
-							connectionManager,
+							ActionTools.createAction(
+									new ConnectionsManagerCommand(qupath.getStage()),
+									ConnectionsManagerCommand.getMenuTitle()
+							),
 							new SeparatorMenuItem(),
-							actionSendAnnotations,
-							actionImportAnnotations
+							new SenderMenu(qupath),
+							new ImporterMenu(qupath)
 					)
 			);
 		}
