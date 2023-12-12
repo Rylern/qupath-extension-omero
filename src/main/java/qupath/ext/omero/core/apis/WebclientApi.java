@@ -271,14 +271,14 @@ class WebclientApi implements AutoCloseable {
      * </p>
      * <p>This function is asynchronous.</p>
      *
-     * @param image  the image to associate the key value pairs
+     * @param imageId  the id of the image to associate the key value pairs
      * @param keyValues  the key value pairs to send
      * @param replaceExisting  whether to replace values when keys already exist on the OMERO server
      * @param deleteExisting  whether to delete all existing key value pairs on the OMERO server
      * @return a CompletableFuture indicating the success of the operation
      */
     public CompletableFuture<Boolean> sendKeyValuePairs(
-            Image image,
+            long imageId,
             Map<String, String> keyValues,
             boolean replaceExisting,
             boolean deleteExisting
@@ -289,7 +289,7 @@ class WebclientApi implements AutoCloseable {
         ));
 
         if (uri.isPresent()) {
-            return removeAndReturnExistingMapAnnotations(uri.get(), image).thenCompose(existingAnnotations -> {
+            return removeAndReturnExistingMapAnnotations(uri.get(), imageId).thenCompose(existingAnnotations -> {
                 Map<String, String> keyValuesToSend;
                 if (deleteExisting) {
                     keyValuesToSend = keyValues;
@@ -316,7 +316,7 @@ class WebclientApi implements AutoCloseable {
                         uri.get(),
                         String.format(
                                 "image=%d&mapAnnotation=%s",
-                                image.getId(),
+                                imageId,
                                 URLEncoder.encode(
                                         keyValuesToSend.keySet().stream()
                                                 .map(key -> String.format("[\"%s\",\"%s\"]", key, keyValuesToSend.get(key)))
@@ -385,8 +385,8 @@ class WebclientApi implements AutoCloseable {
         return ApiUtilities.getImage(String.format(PLATE_ACQUISITION_ICON_URL, host));
     }
 
-    private CompletableFuture<List<MapAnnotation>> removeAndReturnExistingMapAnnotations(URI uri, Image image) {
-        return getAnnotations(image).thenApplyAsync(annotationGroupResponse -> {
+    private CompletableFuture<List<MapAnnotation>> removeAndReturnExistingMapAnnotations(URI uri, long imageId) {
+        return getAnnotations(new Image(imageId)).thenApplyAsync(annotationGroupResponse -> {
             List<MapAnnotation> existingAnnotations = annotationGroupResponse
                     .map(annotationGroup -> annotationGroup.getAnnotations().get(MapAnnotation.class))
                     .map(annotations -> annotations.stream()
@@ -398,7 +398,7 @@ class WebclientApi implements AutoCloseable {
 
             existingAnnotations.stream()
                     .map(Annotation::getId)
-                    .map(id -> String.format("image=%d&annId=%d&mapAnnotation=\"\"", image.getId(), id))
+                    .map(id -> String.format("image=%d&annId=%d&mapAnnotation=\"\"", imageId, id))
                     .map(body -> RequestSender.post(
                             uri,
                             body.getBytes(StandardCharsets.UTF_8),

@@ -1,4 +1,4 @@
-package qupath.ext.omero.gui.annotationimporter;
+package qupath.ext.omero.gui.importer;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;

@@ -710,7 +710,7 @@ public class TestApisHandler extends OmeroServer {
                     "C", "D"
             );
 
-            boolean status = apisHandler.sendKeyValuePairs(image, keyValues, true, true).get();
+            boolean status = apisHandler.sendKeyValuePairs(image.getId(), keyValues, true, true).get();
 
             Assertions.assertFalse(status);
         }
@@ -765,7 +765,7 @@ public class TestApisHandler extends OmeroServer {
                     "C", "D"
             );
 
-            boolean status = apisHandler.sendKeyValuePairs(image, keyValues, true, true).get();
+            boolean status = apisHandler.sendKeyValuePairs(image.getId(), keyValues, true, true).get();
 
             Assertions.assertTrue(status);
         }
@@ -776,7 +776,7 @@ public class TestApisHandler extends OmeroServer {
             Map<String, String> existingKeyValues = Map.of(
                     "existingKey", "existingValue"
             );
-            apisHandler.sendKeyValuePairs(image, existingKeyValues, true, true).get();
+            apisHandler.sendKeyValuePairs(image.getId(), existingKeyValues, true, true).get();
             Map<String, String> keyValuesToSend = Map.of(
                     "A", "B",
                     "C", "D"
@@ -786,7 +786,7 @@ public class TestApisHandler extends OmeroServer {
                     "C", "D"
             );
 
-            apisHandler.sendKeyValuePairs(image, keyValuesToSend, true, true).get();
+            apisHandler.sendKeyValuePairs(image.getId(), keyValuesToSend, true, true).get();
 
             Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
                     .map(AnnotationGroup::getAnnotations)
@@ -815,7 +815,7 @@ public class TestApisHandler extends OmeroServer {
             Map<String, String> existingKeyValues = Map.of(
                     "existingKey", "existingValue"
             );
-            apisHandler.sendKeyValuePairs(image, existingKeyValues, true, true).get();
+            apisHandler.sendKeyValuePairs(image.getId(), existingKeyValues, true, true).get();
             Map<String, String> keyValuesToSend = Map.of(
                     "A", "B",
                     "C", "D"
@@ -826,7 +826,7 @@ public class TestApisHandler extends OmeroServer {
                     "existingKey", "existingValue"
             );
 
-            apisHandler.sendKeyValuePairs(image, keyValuesToSend, true, false).get();
+            apisHandler.sendKeyValuePairs(image.getId(), keyValuesToSend, true, false).get();
 
             Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
                     .map(AnnotationGroup::getAnnotations)
@@ -855,7 +855,7 @@ public class TestApisHandler extends OmeroServer {
             Map<String, String> existingKeyValues = Map.of(
                     "A", "existingValue"
             );
-            apisHandler.sendKeyValuePairs(image, existingKeyValues, true, true).get();
+            apisHandler.sendKeyValuePairs(image.getId(), existingKeyValues, true, true).get();
             Map<String, String> keyValuesToSend = Map.of(
                     "A", "B",
                     "C", "D"
@@ -865,7 +865,7 @@ public class TestApisHandler extends OmeroServer {
                     "C", "D"
             );
 
-            apisHandler.sendKeyValuePairs(image, keyValuesToSend, true, true).get();
+            apisHandler.sendKeyValuePairs(image.getId(), keyValuesToSend, true, true).get();
 
             Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
                     .map(AnnotationGroup::getAnnotations)
@@ -894,7 +894,7 @@ public class TestApisHandler extends OmeroServer {
             Map<String, String> existingKeyValues = Map.of(
                     "A", "existingValue"
             );
-            apisHandler.sendKeyValuePairs(image, existingKeyValues, true, true).get();
+            apisHandler.sendKeyValuePairs(image.getId(), existingKeyValues, true, true).get();
             Map<String, String> keyValuesToSend = Map.of(
                     "A", "B",
                     "C", "D"
@@ -904,7 +904,7 @@ public class TestApisHandler extends OmeroServer {
                     "C", "D"
             );
 
-            apisHandler.sendKeyValuePairs(image, keyValuesToSend, false, true).get();
+            apisHandler.sendKeyValuePairs(image.getId(), keyValuesToSend, false, true).get();
 
             Map<String, String> keyValues = apisHandler.getAnnotations(image).get()
                     .map(AnnotationGroup::getAnnotations)
