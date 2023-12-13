@@ -362,11 +362,15 @@ public class ApisHandler implements AutoCloseable {
     /**
      * See {@link WebclientApi#changeImageName(long, String)}.
      */
-    public CompletableFuture<Boolean> changeImageName(
-            long imageId,
-            String imageName
-    ) {
+    public CompletableFuture<Boolean> changeImageName(long imageId, String imageName) {
         return webclientApi.changeImageName(imageId, imageName);
+    }
+
+    /**
+     * See {@link WebclientApi#changeChannelsName(long, List)}.
+     */
+    public CompletableFuture<Boolean> changeChannelsName(long imageId, List<String> channelsName) {
+        return webclientApi.changeChannelsName(imageId, channelsName);
     }
 
     /**

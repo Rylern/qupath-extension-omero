@@ -479,6 +479,9 @@ public class TestApisHandler extends OmeroServer {
         abstract void Check_Image_Name_Can_Be_Changed() throws ExecutionException, InterruptedException;
 
         @Test
+        abstract void Check_Channels_Names_Can_Be_Changed() throws ExecutionException, InterruptedException;
+
+        @Test
         void Check_Dataset_Icon() throws ExecutionException, InterruptedException {
             Class<? extends RepositoryEntity> type = Dataset.class;
 
@@ -754,6 +757,17 @@ public class TestApisHandler extends OmeroServer {
 
         @Test
         @Override
+        void Check_Channels_Names_Can_Be_Changed() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getFloat32Image();
+            List<String> newChannelsName = List.of("Channel 1", "Channel 2", "Channel 3");
+
+            boolean status = apisHandler.changeChannelsName(image.getId(), newChannelsName).get();
+
+            Assertions.assertFalse(status);
+        }
+
+        @Test
+        @Override
         void Check_Write_ROIs() throws ExecutionException, InterruptedException {
             long imageId = OmeroServer.getComplexImage().getId();
             List<Shape> rois = List.of(new Rectangle(10, 10, 100, 100), new Line(20, 20, 50, 50));
@@ -932,6 +946,17 @@ public class TestApisHandler extends OmeroServer {
 
             // Reset image name
             apisHandler.changeImageName(image.getId(), OmeroServer.getComplexImageName()).get();
+        }
+
+        @Test
+        @Override
+        void Check_Channels_Names_Can_Be_Changed() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getFloat32Image();
+            List<String> newChannelsName = List.of("Channel 1", "Channel 2", "Channel 3");
+
+            boolean status = apisHandler.changeChannelsName(image.getId(), newChannelsName).get();
+
+            Assertions.assertTrue(status);
         }
 
         @Test
