@@ -360,6 +360,16 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
+     * See {@link WebclientApi#changeImageName(long, String)}.
+     */
+    public CompletableFuture<Boolean> changeImageName(
+            long imageId,
+            String imageName
+    ) {
+        return webclientApi.changeImageName(imageId, imageName);
+    }
+
+    /**
      * <p>Attempt to retrieve the icon of an OMERO entity.</p>
      * <p>Icons for orphaned folders, projects, datasets, images, screens, plates, and plate acquisitions can be retrieved.</p>
      * <p>This function is asynchronous.</p>
