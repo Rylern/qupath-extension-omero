@@ -62,7 +62,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class OmeroServer {
 
     private static final Logger logger = LoggerFactory.getLogger(OmeroServer.class);
-    private static final boolean IS_LOCAL_OMERO_SERVER_RUNNING = false;
+    private static final boolean IS_LOCAL_OMERO_SERVER_RUNNING = true;
     private static final int CLIENT_CREATION_ATTEMPTS = 3;
     private static final String OMERO_PASSWORD = "password";
     private static final int OMERO_SERVER_PORT = 4064;
@@ -430,6 +430,10 @@ public abstract class OmeroServer {
         return 3;
     }
 
+    protected static List<String> getRGBImageChannelsName() {
+        return List.of("0", "1", "2");
+    }
+
     protected static int getRGBImageNumberOfTimePoints() {
         return 1;
     }
@@ -582,6 +586,10 @@ public abstract class OmeroServer {
         return 28.605;
     }
 
+    protected static List<String> getFloat32ImageChannelsName() {
+        return List.of("0", "1", "2");
+    }
+
     protected static Image getFloat64Image() {
         return getImagesInDataset().get(8);
     }
@@ -628,6 +636,10 @@ public abstract class OmeroServer {
 
     protected static int getComplexImageNumberOfChannels() {
         return 1;
+    }
+
+    protected static List<String> getComplexImageChannelsName() {
+        return List.of("");
     }
 
     protected static int getComplexImageNumberOfTimePoints() {

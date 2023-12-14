@@ -3,7 +3,9 @@ package qupath.ext.omero.core.entities.repositoryentities.serverentities.image;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import qupath.ext.omero.TestUtilities;
 
+import java.util.List;
 import java.util.Optional;
 
 public class TestPixelInfo {
@@ -67,6 +69,16 @@ public class TestPixelInfo {
         Assertions.assertEquals(expectedPixelType, pixelType);
     }
 
+    @Test
+    void Check_Channels_Name() {
+        PixelInfo pixelInfo = createPixelInfo();
+        List<String> expectedChannelsName = List.of("Channel 1", "Channel 2");
+
+        List<Channel> channels = pixelInfo.getChannels();
+
+        TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelsName, channels.stream().map(Channel::getName).toList());
+    }
+
     private PixelInfo createPixelInfo() {
         String json = """
                 {
@@ -89,7 +101,15 @@ public class TestPixelInfo {
                     },
                     "Type": {
                         "value": "float"
-                    }
+                    },
+                    "Channels": [
+                        {
+                            "Name": "Channel 1"
+                        },
+                        {
+                            "Name": "Channel 2"
+                        }
+                    ]
                 }
                 """;
         return new Gson().fromJson(json, PixelInfo.class);

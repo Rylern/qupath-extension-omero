@@ -957,6 +957,9 @@ public class TestApisHandler extends OmeroServer {
             boolean status = apisHandler.changeChannelsName(image.getId(), newChannelsName).get();
 
             Assertions.assertTrue(status);
+
+            // Reset channels name
+            apisHandler.changeChannelsName(image.getId(), OmeroServer.getFloat32ImageChannelsName()).get();
         }
 
         @Test

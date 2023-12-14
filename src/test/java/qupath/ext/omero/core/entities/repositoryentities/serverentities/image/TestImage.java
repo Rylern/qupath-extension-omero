@@ -56,6 +56,9 @@ public class TestImage extends OmeroServer {
 
         @Test
         abstract void Check_Unsupported_Reasons();
+
+        @Test
+        abstract void Check_Channels_Name();
     }
 
     @Nested
@@ -128,11 +131,20 @@ public class TestImage extends OmeroServer {
         @Test
         @Override
         void Check_Unsupported_Reasons() {
-            Set<Image.UNSUPPORTED_REASON> expectedReasons = Set.of();
+            Set<Image.UnsupportedReason> expectedReasons = Set.of();
 
-            Set<Image.UNSUPPORTED_REASON> reasons = image.getUnsupportedReasons();
+            Set<Image.UnsupportedReason> reasons = image.getUnsupportedReasons();
 
             TestUtilities.assertCollectionsEqualsWithoutOrder(expectedReasons, reasons);
+        }
+
+        @Override
+        void Check_Channels_Name() {
+            List<String> expectedChannelsName = OmeroServer.getRGBImageChannelsName();
+
+            List<String> channelsName = image.getChannelsName();
+
+            TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelsName, channelsName);
         }
     }
 
@@ -194,11 +206,21 @@ public class TestImage extends OmeroServer {
         @Test
         @Override
         void Check_Unsupported_Reasons() {
-            Set<Image.UNSUPPORTED_REASON> expectedReasons = Set.of();
+            Set<Image.UnsupportedReason> expectedReasons = Set.of();
 
-            Set<Image.UNSUPPORTED_REASON> reasons = image.getUnsupportedReasons();
+            Set<Image.UnsupportedReason> reasons = image.getUnsupportedReasons();
 
             TestUtilities.assertCollectionsEqualsWithoutOrder(expectedReasons, reasons);
+        }
+
+        @Test
+        @Override
+        void Check_Channels_Name() {
+            List<String> expectedChannelsName = OmeroServer.getComplexImageChannelsName();
+
+            List<String> channelsName = image.getChannelsName();
+
+            TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelsName, channelsName);
         }
     }
 }

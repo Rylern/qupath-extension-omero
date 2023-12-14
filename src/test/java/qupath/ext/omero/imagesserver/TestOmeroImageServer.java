@@ -30,7 +30,9 @@ public class TestOmeroImageServer extends OmeroServer {
 
     @AfterAll
     static void removeImageServer() throws Exception {
-        imageServer.close();
+        if (imageServer != null) {
+            imageServer.close();
+        }
         WebClients.removeClient(client);
     }
 
