@@ -1,8 +1,10 @@
-package qupath.ext.omero.gui.sender;
+package qupath.ext.omero.gui.datatransporters.senders;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import qupath.ext.omero.gui.UiUtilities;
+import qupath.ext.omero.gui.datatransporters.DataTransporter;
+import qupath.ext.omero.gui.datatransporters.forms.SendAnnotationForm;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.viewer.QuPathViewer;
@@ -17,55 +19,50 @@ import java.util.ResourceBundle;
 
 /**
  * <p>
- *     Non instantiable class that sends QuPath annotations from the currently opened
- *     image to an OMERO server.
+ *     Send QuPath annotations from the currently opened image to an OMERO server.
  * </p>
  * <p>
  *     Here, an annotation refers to a QuPath annotation (a path object)
  *     and <b>not</b> an OMERO annotation (some metadata attached to images for example).
  * </p>
  * <p>
- *     This class uses a {@link AnnotationForm} to prompt the user for parameters.
+ *     This class uses an {@link SendAnnotationForm} to prompt the user for parameters.
  * </p>
  */
-class AnnotationSender {
+public class AnnotationSender implements DataTransporter {
 
     private static final Logger logger = LoggerFactory.getLogger(AnnotationSender.class);
     private static final ResourceBundle resources = UiUtilities.getResources();
 
-    private AnnotationSender() {
-        throw new AssertionError("This class is not instantiable.");
+    @Override
+    public String getMenuTitle() {
+        return resources.getString("DataTransporters.AnnotationsSender.sendAnnotations");
     }
 
-    /**
-     * @return the localized name of this command
-     */
-    public static String getMenuTitle() {
-        return resources.getString("AnnotationsSender.sendAnnotations");
+    @Override
+    public boolean requireProject() {
+        return false;
     }
 
-    /**
-     * Attempt to send annotations of the currently opened image to the corresponding OMERO server.
-     * This method doesn't return anything but will show dialogs and notifications indicating the success of the operation.
-     */
-    public static void sendAnnotations() {
+    @Override
+    public void transportData() {
         QuPathViewer viewer = QuPathGUI.getInstance().getViewer();
 
         if (viewer != null && viewer.getServer() instanceof OmeroImageServer omeroImageServer) {
-            AnnotationForm annotationForm;
+            SendAnnotationForm annotationForm;
             try {
-                annotationForm = new AnnotationForm();
+                annotationForm = new SendAnnotationForm();
             } catch (IOException e) {
                 logger.error("Error when creating the annotation form", e);
                 Dialogs.showErrorMessage(
-                        resources.getString("AnnotationsSender.sendAnnotations"),
+                        resources.getString("DataTransporters.AnnotationsSender.sendAnnotations"),
                         e.getLocalizedMessage()
                 );
                 return;
             }
 
             boolean confirmed = Dialogs.showConfirmDialog(
-                    resources.getString("AnnotationsSender.dataToSend"),
+                    resources.getString("DataTransporters.AnnotationsSender.dataToSend"),
                     annotationForm
             );
 
@@ -74,8 +71,8 @@ class AnnotationSender {
 
                 if (annotations.isEmpty()) {
                     Dialogs.showErrorMessage(
-                            resources.getString("AnnotationsSender.sendAnnotations"),
-                            resources.getString("AnnotationsSender.noAnnotations")
+                            resources.getString("DataTransporters.AnnotationsSender.sendAnnotations"),
+                            resources.getString("DataTransporters.AnnotationsSender.noAnnotations")
                     );
                 } else {
                     boolean success = omeroImageServer.sendPathObjects(annotations, annotationForm.deleteExistingDataSelected());
@@ -84,15 +81,15 @@ class AnnotationSender {
                         String message = "";
 
                         if (annotationForm.deleteExistingDataSelected()) {
-                            message += resources.getString("AnnotationsSender.existingAnnotationsDeleted") + "\n";
+                            message += resources.getString("DataTransporters.AnnotationsSender.existingAnnotationsDeleted") + "\n";
                         }
 
                         if (annotations.size() == 1) {
-                            title = resources.getString("AnnotationsSender.1WrittenSuccessfully");
-                            message += resources.getString("AnnotationsSender.1AnnotationWrittenSuccessfully");
+                            title = resources.getString("DataTransporters.AnnotationsSender.1WrittenSuccessfully");
+                            message += resources.getString("DataTransporters.AnnotationsSender.1AnnotationWrittenSuccessfully");
                         } else {
-                            title = resources.getString("AnnotationsSender.XWrittenSuccessfully");
-                            message += MessageFormat.format(resources.getString("AnnotationsSender.XAnnotationsWrittenSuccessfully"), annotations.size());
+                            title = resources.getString("DataTransporters.AnnotationsSender.XWrittenSuccessfully");
+                            message += MessageFormat.format(resources.getString("DataTransporters.AnnotationsSender.XAnnotationsWrittenSuccessfully"), annotations.size());
                         }
 
                         Dialogs.showInfoNotification(
@@ -102,17 +99,17 @@ class AnnotationSender {
                     } else {
                         Dialogs.showErrorNotification(
                                 annotations.size() == 1 ?
-                                        resources.getString("AnnotationsSender.1AnnotationFailed") :
-                                        MessageFormat.format(resources.getString("AnnotationsSender.XAnnotationFailed"), annotations.size()),
-                                resources.getString("AnnotationsSender.seeLogs")
+                                        resources.getString("DataTransporters.AnnotationsSender.1AnnotationFailed") :
+                                        MessageFormat.format(resources.getString("DataTransporters.AnnotationsSender.XAnnotationFailed"), annotations.size()),
+                                resources.getString("DataTransporters.AnnotationsSender.seeLogs")
                         );
                     }
                 }
             }
         } else {
             Dialogs.showErrorMessage(
-                    resources.getString("AnnotationsSender.sendAnnotations"),
-                    resources.getString("AnnotationsSender.notFromOMERO")
+                    resources.getString("DataTransporters.AnnotationsSender.sendAnnotations"),
+                    resources.getString("DataTransporters.AnnotationsSender.notFromOMERO")
             );
         }
     }

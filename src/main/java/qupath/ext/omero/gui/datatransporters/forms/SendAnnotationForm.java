@@ -1,4 +1,4 @@
-package qupath.ext.omero.gui.sender;
+package qupath.ext.omero.gui.datatransporters.forms;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -10,14 +10,13 @@ import java.io.IOException;
 import java.util.ResourceBundle;
 
 /**
- * Form that can be used in a dialog to let the user choose
- * some parameters when sending annotations to an OMERO server.
+ * Form that lets the user choose some parameters when sending annotations to an OMERO server.
  */
-class AnnotationForm extends VBox {
+public class SendAnnotationForm extends VBox {
 
     private static final ResourceBundle resources = UiUtilities.getResources();
-    private static final String ONLY_SELECTED_ANNOTATIONS = resources.getString("AnnotationsSender.AnnotationForm.onlySelectedAnnotations");
-    private static final String ALL_ANNOTATIONS = resources.getString("AnnotationsSender.AnnotationForm.allAnnotations");
+    private static final String ONLY_SELECTED_ANNOTATIONS = resources.getString("DataTransporters.Forms.SendAnnotations.onlySelectedAnnotations");
+    private static final String ALL_ANNOTATIONS = resources.getString("DataTransporters.Forms.SendAnnotations.allAnnotations");
     @FXML
     private ChoiceBox<String> selectedChoice;
     @FXML
@@ -28,8 +27,8 @@ class AnnotationForm extends VBox {
      *
      * @throws IOException if an error occurs while creating the form
      */
-    public AnnotationForm() throws IOException {
-        UiUtilities.loadFXML(this, AnnotationForm.class.getResource("annotation_form.fxml"));
+    public SendAnnotationForm() throws IOException {
+        UiUtilities.loadFXML(this, SendAnnotationForm.class.getResource("send_annotation_form.fxml"));
 
         selectedChoice.getItems().setAll(ONLY_SELECTED_ANNOTATIONS, ALL_ANNOTATIONS);
         selectedChoice.getSelectionModel().select(ALL_ANNOTATIONS);

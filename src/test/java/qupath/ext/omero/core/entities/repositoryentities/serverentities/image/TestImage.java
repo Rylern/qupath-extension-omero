@@ -58,6 +58,9 @@ public class TestImage extends OmeroServer {
         abstract void Check_Unsupported_Reasons();
 
         @Test
+        abstract void Check_Name();
+
+        @Test
         abstract void Check_Channels_Name();
     }
 
@@ -139,6 +142,15 @@ public class TestImage extends OmeroServer {
         }
 
         @Override
+        void Check_Name() {
+            String expectedName = OmeroServer.getRGBImageName();
+
+            String name = image.getName();
+
+            Assertions.assertEquals(expectedName, name);
+        }
+
+        @Override
         void Check_Channels_Name() {
             List<String> expectedChannelsName = OmeroServer.getRGBImageChannelsName();
 
@@ -211,6 +223,15 @@ public class TestImage extends OmeroServer {
             Set<Image.UnsupportedReason> reasons = image.getUnsupportedReasons();
 
             TestUtilities.assertCollectionsEqualsWithoutOrder(expectedReasons, reasons);
+        }
+
+        @Override
+        void Check_Name() {
+            String expectedName = OmeroServer.getComplexImageName();
+
+            String name = image.getName();
+
+            Assertions.assertEquals(expectedName, name);
         }
 
         @Test

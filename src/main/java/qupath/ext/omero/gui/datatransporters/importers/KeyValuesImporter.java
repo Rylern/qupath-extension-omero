@@ -1,4 +1,4 @@
-package qupath.ext.omero.gui.importer;
+package qupath.ext.omero.gui.datatransporters.importers;
 
 import javafx.application.Platform;
 import org.slf4j.Logger;
@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import qupath.ext.omero.core.entities.annotations.MapAnnotation;
 import qupath.ext.omero.core.entities.repositoryentities.serverentities.image.Image;
 import qupath.ext.omero.gui.UiUtilities;
+import qupath.ext.omero.gui.datatransporters.DataTransporter;
+import qupath.ext.omero.gui.datatransporters.forms.KeyValuesForm;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
 import qupath.fx.dialogs.Dialogs;
 import qupath.lib.gui.QuPathGUI;
@@ -18,8 +20,7 @@ import java.util.ResourceBundle;
 
 /**
  * <p>
- *     Non instantiable class that sends key value pairs to the currently opened
- *     image from the corresponding OMERO server.
+ *     Import key value pairs from an OMERO server to the currently opened image.
  * </p>
  * <p>
  *     Since key value pairs are only defined in projects, a project must be opened.
@@ -28,38 +29,34 @@ import java.util.ResourceBundle;
  *     This class uses a {@link KeyValuesForm} to prompt the user for parameters.
  * </p>
  */
-class KeyValuesImporter {
+public class KeyValuesImporter implements DataTransporter {
 
     private static final Logger logger = LoggerFactory.getLogger(KeyValuesImporter.class);
     private static final ResourceBundle resources = UiUtilities.getResources();
 
-    private KeyValuesImporter() {
-        throw new AssertionError("This class is not instantiable.");
+    @Override
+    public String getMenuTitle() {
+        return resources.getString("DataTransporters.KeyValuesImporter.importKeyValues");
     }
 
-    /**
-     * @return the localized name of this command
-     */
-    public static String getMenuTitle() {
-        return resources.getString("KeyValuesImporter.importKeyValues");
+    @Override
+    public boolean requireProject() {
+        return true;
     }
 
-    /**
-     * Attempt to import key value pairs to the currently opened image from the corresponding OMERO server.
-     * This method doesn't return anything but will show dialogs and notifications indicating the success of the operation.
-     */
-    public static void importKeyValues() {
+    @Override
+    public void transportData() {
         QuPathGUI qupath = QuPathGUI.getInstance();
 
         if (qupath.getProject() == null) {
             Dialogs.showErrorMessage(
-                    resources.getString("KeyValuesImporter.importKeyValues"),
-                    resources.getString("KeyValuesImporter.projectNotOpened")
+                    resources.getString("DataTransporters.KeyValuesImporter.importKeyValues"),
+                    resources.getString("DataTransporters.KeyValuesImporter.projectNotOpened")
             );
         } else if (qupath.getViewer() == null || !(qupath.getViewer().getServer() instanceof OmeroImageServer omeroImageServer)) {
             Dialogs.showErrorMessage(
-                    resources.getString("KeyValuesImporter.importKeyValues"),
-                    resources.getString("KeyValuesImporter.notFromOMERO")
+                    resources.getString("DataTransporters.KeyValuesImporter.importKeyValues"),
+                    resources.getString("DataTransporters.KeyValuesImporter.notFromOMERO")
             );
         } else {
             KeyValuesForm keyValuesForm;
@@ -68,14 +65,14 @@ class KeyValuesImporter {
             } catch (IOException e) {
                 logger.error("Error when creating the key values form", e);
                 Dialogs.showErrorMessage(
-                        resources.getString("KeyValuesImporter.importKeyValues"),
+                        resources.getString("DataTransporters.KeyValuesImporter.importKeyValues"),
                         e.getLocalizedMessage()
                 );
                 return;
             }
 
             boolean confirmed = Dialogs.showConfirmDialog(
-                    resources.getString("KeyValuesImporter.importKeyValues"),
+                    resources.getString("DataTransporters.KeyValuesImporter.importKeyValues"),
                     keyValuesForm
             );
             if (confirmed) {
@@ -98,13 +95,13 @@ class KeyValuesImporter {
                                 }
 
                                 Dialogs.showInfoNotification(
-                                        resources.getString("KeyValuesImporter.importKeyValues"),
-                                        resources.getString("KeyValuesImporter.keyValuesImported")
+                                        resources.getString("DataTransporters.KeyValuesImporter.importKeyValues"),
+                                        resources.getString("DataTransporters.KeyValuesImporter.keyValuesImported")
                                 );
                             } else {
                                 Dialogs.showErrorMessage(
-                                        resources.getString("KeyValuesImporter.importKeyValues"),
-                                        resources.getString("KeyValuesImporter.couldNotRetrieveAnnotations")
+                                        resources.getString("DataTransporters.KeyValuesImporter.importKeyValues"),
+                                        resources.getString("DataTransporters.KeyValuesImporter.couldNotRetrieveAnnotations")
                                 );
                             }
                         }));

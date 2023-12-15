@@ -197,10 +197,10 @@ public class Image extends ServerEntity {
     }
 
     /**
-     * @return a text describing the pixel type of this image, or an empty Optional if not found
+     * @return the name of this image, or an empty String if not found
      */
-    public Optional<String> getPixelType() {
-        return pixels == null ? Optional.empty() : pixels.getPixelType();
+    public String getName() {
+        return name == null ? "" : name;
     }
 
     /**
@@ -216,6 +216,10 @@ public class Image extends ServerEntity {
         } else {
             return Optional.of(pixels.getImageDimensions());
         }
+    }
+
+    private Optional<String> getPixelType() {
+        return pixels == null ? Optional.empty() : pixels.getPixelType();
     }
 
     private Optional<PhysicalSize> getPhysicalSizeX() {
