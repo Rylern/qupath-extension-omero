@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import qupath.ext.omero.core.entities.channels.ChannelDisplayRangeColor;
 import qupath.lib.awt.common.BufferedImageTools;
 import qupath.lib.images.servers.TileRequest;
 import qupath.ext.omero.core.entities.imagemetadata.ImageMetadataResponse;
@@ -14,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -45,8 +47,10 @@ class WebGatewayApi {
     private static final String TILE_FIRST_PARAMETER = URLEncoder.encode("c=1|0:255$FF0000,2|0:255$00FF00,3|0:255$0000FF", StandardCharsets.UTF_8);
     private static final String TILE_SECOND_PARAMETER =
             URLEncoder.encode("maps=[{\"inverted\":{\"enabled\":false}},{\"inverted\":{\"enabled\":false}},{\"inverted\":{\"enabled\":false}}]", StandardCharsets.UTF_8);
+    private static final String CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS = "%s/webgateway/saveImgRDef/%d/?m=c&c=%s";
     private final IntegerProperty numberOfThumbnailsLoading = new SimpleIntegerProperty(0);
     private final URI host;
+    private String token;
 
     /**
      * Creates a web gateway client.
@@ -60,6 +64,16 @@ class WebGatewayApi {
     @Override
     public String toString() {
         return String.format("WebGateway API of %s", host);
+    }
+
+    /**
+     * Set the <a href="https://docs.openmicroscopy.org/omero/5.6.0/developers/json-api.html#get-csrf-token">CSRF token</a>
+     * used by this session. This is needed to perform some functions of this API.
+     *
+     * @param token  the CSRF token of the session
+     */
+    public void setToken(String token) {
+        this.token = token;
     }
 
     /**
@@ -140,6 +154,7 @@ class WebGatewayApi {
         }
     }
 
+    //TODO: check the two read tile functions when changing channel settings
     /**
      * <p>Attempt to read a tile (portion of image) from a single resolution image.</p>
      * <p>This function is asynchronous.</p>
@@ -152,7 +167,7 @@ class WebGatewayApi {
      * @param allowSmoothInterpolation  whether to use smooth interpolation when resizing
      * @return a CompletableFuture with the tile, or an empty Optional if an error occurred
      */
-    public CompletableFuture<Optional<BufferedImage>> readSingleResolutionTile(Long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality, boolean allowSmoothInterpolation) {
+    public CompletableFuture<Optional<BufferedImage>> readSingleResolutionTile(long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality, boolean allowSmoothInterpolation) {
         return ApiUtilities.getImage(String.format(SINGLE_RESOLUTION_TILE_URL,
                         host, id, tileRequest.getZ(), tileRequest.getT(),
                         tileRequest.getTileX(), tileRequest.getTileY(), preferredTileWidth, preferredTileHeight,
@@ -166,6 +181,7 @@ class WebGatewayApi {
                 );
     }
 
+
     /**
      * <p>Attempt to read a tile (portion of image) from a multi resolution image.</p>
      * <p>This function is asynchronous.</p>
@@ -177,7 +193,7 @@ class WebGatewayApi {
      * @param quality  the JPEG quality, from 0 to 1
      * @return a CompletableFuture with the tile, or an empty Optional if an error occurred
      */
-    public CompletableFuture<Optional<BufferedImage>> readMultiResolutionTile(Long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality) {
+    public CompletableFuture<Optional<BufferedImage>> readMultiResolutionTile(long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality) {
         return ApiUtilities.getImage(String.format(MULTI_RESOLUTION_TILE_URL,
                 host, id, tileRequest.getZ(), tileRequest.getT(),
                 tileRequest.getLevel(), tileRequest.getTileX() / preferredTileWidth, tileRequest.getTileY() / preferredTileHeight,
@@ -186,6 +202,36 @@ class WebGatewayApi {
                 TILE_SECOND_PARAMETER,
                 quality
         ));
+    }
+
+    /**
+     * <p>
+     *     Attempt to change the channel display ranges and colors of an image.
+     * </p>
+     * <p>This function is asynchronous.</p>
+     *
+     * @param imageID  the ID of the image to change the channel settings
+     * @param channelDisplayRangeColors  the new channel display ranges and colors
+     * @return a CompletableFuture indicating the success of the operation
+     */
+    public CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelDisplayRangeColor> channelDisplayRangeColors) {
+        var uri = WebUtilities.createURI(String.format(
+                CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS,
+                host,
+                imageID,
+                URLEncoder.encode(ChannelDisplayRangeColor.getOmeroRepresentation(channelDisplayRangeColors), StandardCharsets.UTF_8)
+        ));
+
+        if (uri.isPresent()) {
+            return RequestSender.post(
+                    uri.get(),
+                    "",
+                    "",
+                    token
+            ).thenApply(response -> response.isPresent() && response.get().equals("true"));
+        } else {
+            return CompletableFuture.completedFuture(false);
+        }
     }
 
     private synchronized void changeNumberOfThumbnailsLoading(boolean increment) {

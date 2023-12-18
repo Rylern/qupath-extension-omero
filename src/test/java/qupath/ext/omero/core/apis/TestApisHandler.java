@@ -9,6 +9,7 @@ import qupath.ext.omero.core.WebClient;
 import qupath.ext.omero.core.WebClients;
 import qupath.ext.omero.core.entities.annotations.AnnotationGroup;
 import qupath.ext.omero.core.entities.annotations.MapAnnotation;
+import qupath.ext.omero.core.entities.channels.ChannelDisplayRangeColor;
 import qupath.ext.omero.core.entities.imagemetadata.ImageMetadataResponse;
 import qupath.ext.omero.core.entities.permissions.Group;
 import qupath.ext.omero.core.entities.permissions.Owner;
@@ -22,6 +23,7 @@ import qupath.ext.omero.core.entities.search.SearchResult;
 import qupath.ext.omero.core.entities.shapes.Line;
 import qupath.ext.omero.core.entities.shapes.Rectangle;
 import qupath.ext.omero.core.entities.shapes.Shape;
+import qupath.lib.common.ColorTools;
 import qupath.lib.images.servers.PixelType;
 
 import java.awt.image.BufferedImage;
@@ -686,6 +688,9 @@ public class TestApisHandler extends OmeroServer {
         }
 
         @Test
+        abstract void Check_Channel_Display_Ranges_And_Colors_Can_Be_Changed() throws ExecutionException, InterruptedException;
+
+        @Test
         void Check_Get_ROIs_With_Invalid_Image_ID() throws ExecutionException, InterruptedException {
             long invalidImageID = -1;
             List<Shape> expectedROIs = List.of();
@@ -762,6 +767,21 @@ public class TestApisHandler extends OmeroServer {
             List<String> newChannelsName = List.of("Channel 1", "Channel 2", "Channel 3");
 
             boolean status = apisHandler.changeChannelsName(image.getId(), newChannelsName).get();
+
+            Assertions.assertFalse(status);
+        }
+
+        @Test
+        @Override
+        void Check_Channel_Display_Ranges_And_Colors_Can_Be_Changed() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getFloat32Image();
+            List<ChannelDisplayRangeColor> channelDisplayRangeColors = List.of(
+                    new ChannelDisplayRangeColor(0, 100, ColorTools.packRGB(0, 255, 255)),
+                    new ChannelDisplayRangeColor(50, 200, ColorTools.packRGB(255, 0, 255)),
+                    new ChannelDisplayRangeColor(75, 80, ColorTools.packRGB(255, 255, 0))
+            );
+
+            boolean status = apisHandler.changeChannelDisplayRangesAndColors(image.getId(), channelDisplayRangeColors).get();
 
             Assertions.assertFalse(status);
         }
@@ -960,6 +980,21 @@ public class TestApisHandler extends OmeroServer {
 
             // Reset channels name
             apisHandler.changeChannelsName(image.getId(), OmeroServer.getFloat32ImageChannelsName()).get();
+        }
+
+        @Test
+        @Override
+        void Check_Channel_Display_Ranges_And_Colors_Can_Be_Changed() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getFloat32Image();
+            List<ChannelDisplayRangeColor> channelDisplayRangeColors = List.of(
+                    new ChannelDisplayRangeColor(0, 100, ColorTools.packRGB(0, 255, 255)),
+                    new ChannelDisplayRangeColor(50, 200, ColorTools.packRGB(255, 0, 255)),
+                    new ChannelDisplayRangeColor(75, 80, ColorTools.packRGB(255, 255, 0))
+            );
+
+            boolean status = apisHandler.changeChannelDisplayRangesAndColors(image.getId(), channelDisplayRangeColors).get();
+
+            Assertions.assertTrue(status);
         }
 
         @Test

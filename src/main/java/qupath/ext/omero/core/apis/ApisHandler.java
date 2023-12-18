@@ -3,6 +3,7 @@ package qupath.ext.omero.core.apis;
 import com.drew.lang.annotations.Nullable;
 import javafx.beans.property.*;
 import qupath.ext.omero.core.entities.annotations.AnnotationGroup;
+import qupath.ext.omero.core.entities.channels.ChannelDisplayRangeColor;
 import qupath.ext.omero.core.entities.login.LoginResponse;
 import qupath.ext.omero.core.entities.repositoryentities.OrphanedFolder;
 import qupath.ext.omero.core.entities.repositoryentities.RepositoryEntity;
@@ -76,6 +77,7 @@ public class ApisHandler implements AutoCloseable {
             if (jsonApi.isPresent()) {
                 apisHandler.jsonApi = jsonApi.get();
                 apisHandler.webclientApi.setToken(jsonApi.get().getToken());
+                apisHandler.webGatewayApi.setToken(jsonApi.get().getToken());
                 return Optional.of(apisHandler);
             } else {
                 return Optional.empty();
@@ -456,10 +458,17 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebGatewayApi#readSingleResolutionTile(Long, TileRequest, int, int, double, boolean)}.
+     * See {@link WebGatewayApi#getImageMetadata(long)}.
+     */
+    public CompletableFuture<Optional<ImageMetadataResponse>> getImageMetadata(long id) {
+        return webGatewayApi.getImageMetadata(id);
+    }
+
+    /**
+     * See {@link WebGatewayApi#readSingleResolutionTile(long, TileRequest, int, int, double, boolean)}.
      */
     public CompletableFuture<Optional<BufferedImage>> readSingleResolutionTile(
-            Long id,
+            long id,
             TileRequest tileRequest,
             int preferredTileWidth,
             int preferredTileHeight,
@@ -470,10 +479,10 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebGatewayApi#readMultiResolutionTile(Long, TileRequest, int, int, double)}.
+     * See {@link WebGatewayApi#readMultiResolutionTile(long, TileRequest, int, int, double)}.
      */
     public CompletableFuture<Optional<BufferedImage>> readMultiResolutionTile(
-            Long id,
+            long id,
             TileRequest tileRequest,
             int preferredTileWidth,
             int preferredTileHeight,
@@ -483,10 +492,10 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebGatewayApi#getImageMetadata(long)}.
+     * See {@link WebGatewayApi#changeChannelDisplayRangesAndColors(long, List)}.
      */
-    public CompletableFuture<Optional<ImageMetadataResponse>> getImageMetadata(long id) {
-        return webGatewayApi.getImageMetadata(id);
+    public CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelDisplayRangeColor> channelDisplayRangeColors) {
+        return webGatewayApi.changeChannelDisplayRangesAndColors(imageID, channelDisplayRangeColors);
     }
 
     /**

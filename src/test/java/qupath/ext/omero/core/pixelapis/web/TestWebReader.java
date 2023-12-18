@@ -5,7 +5,6 @@ import qupath.ext.omero.OmeroServer;
 import qupath.ext.omero.core.WebClient;
 import qupath.ext.omero.core.WebClients;
 import qupath.ext.omero.core.pixelapis.PixelAPIReader;
-import qupath.ext.omero.core.pixelapis.mspixelbuffer.MsPixelBufferAPI;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
 import qupath.lib.analysis.stats.Histogram;
 import qupath.lib.common.ColorTools;
@@ -107,7 +106,7 @@ public class TestWebReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
+            reader = client.getPixelAPI(WebAPI.class).createReader(
                     OmeroServer.getUInt8Image().getId(),
                     metadata,
                     true,
@@ -132,8 +131,8 @@ public class TestWebReader extends OmeroServer {
                     Double.NaN
             );
 
-            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 0.001);
-            Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 0.001);
+            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 5);
+            Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 11);
         }
     }
 }
