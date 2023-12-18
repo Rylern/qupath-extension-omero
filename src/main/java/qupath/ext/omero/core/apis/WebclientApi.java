@@ -49,6 +49,8 @@ class WebclientApi implements AutoCloseable {
             "?query=%s&%s&%s&searchGroup=%s&ownedBy=%s" +
             "&useAcquisitionDate=false&startdateinput=&enddateinput=&_=%d";
     private final static String WRITE_KEY_VALUES_URL = "%s/webclient/annotate_map/";
+    private final static String WRITE_NAME_URL = "%s/webclient/action/savename/image/%d/";
+    private final static String WRITE_CHANNEL_NAMES_URL = "%s/webclient/edit_channel_names/%d/";
     private static final String IMAGE_ICON_URL = "%s/static/webclient/image/image16.png";
     private static final String SCREEN_ICON_URL = "%s/static/webclient/image/folder_screen16.png";
     private static final String PLATE_ICON_URL = "%s/static/webclient/image/folder_plate16.png";
@@ -335,6 +337,99 @@ class WebclientApi implements AutoCloseable {
                         return false;
                     }
                 });
+            });
+        } else {
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    /**
+     * <p>
+     *     Change the name of an image on OMERO.
+     * </p>
+     * <p>This function is asynchronous.</p>
+     *
+     * @param imageId  the id of the image whose name should be changed
+     * @param imageName  the new name of the image
+     * @return a CompletableFuture indicating the success of the operation
+     */
+    public CompletableFuture<Boolean> changeImageName(long imageId, String imageName) {
+        var uri = WebUtilities.createURI(String.format(
+                WRITE_NAME_URL,
+                host,
+                imageId
+        ));
+
+        if (uri.isPresent()) {
+            return RequestSender.post(
+                    uri.get(),
+                    String.format(
+                            "name=%s&",
+                            imageName
+                    ).getBytes(StandardCharsets.UTF_8),
+                    "",
+                    token
+            ).thenApply(rawResponse -> {
+                if (rawResponse.isPresent()) {
+                    Gson gson = new Gson();
+                    try {
+                        Map<String, String> response = gson.fromJson(rawResponse.get(), new TypeToken<>() {});
+                        return response != null && response.containsKey("o_type");
+                    } catch (JsonSyntaxException e) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            });
+        } else {
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    /**
+     * <p>
+     *     Change the names of the channels of an image on OMERO.
+     * </p>
+     * <p>This function is asynchronous.</p>
+     *
+     * @param imageId  the id of the image whose channels name should be changed
+     * @param channelsName  the new names of the channels
+     * @return a CompletableFuture indicating the success of the operation
+     */
+    public CompletableFuture<Boolean> changeChannelsName(long imageId, List<String> channelsName) {
+        var uri = WebUtilities.createURI(String.format(
+                WRITE_CHANNEL_NAMES_URL,
+                host,
+                imageId
+        ));
+
+        StringBuilder body = new StringBuilder();
+        for (int i=0; i<channelsName.size(); i++) {
+            body.append(String.format("channel%d=%s&", i, channelsName.get(i)));
+        }
+
+        if (uri.isPresent()) {
+            return RequestSender.post(
+                    uri.get(),
+                    String.format(
+                            "%ssave=save",
+                            body
+                    ).getBytes(StandardCharsets.UTF_8),
+                    "",
+                    token
+            ).thenApply(rawResponse -> {
+                if (rawResponse.isPresent()) {
+                    Gson gson = new Gson();
+                    try {
+                        Map<String, Object> response = gson.fromJson(rawResponse.get(), new TypeToken<>() {});
+                        return response != null && response.containsKey("channelNames");
+                    } catch (JsonSyntaxException e) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
             });
         } else {
             return CompletableFuture.completedFuture(false);

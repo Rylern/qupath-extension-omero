@@ -1,4 +1,4 @@
-package qupath.ext.omero.gui.importer;
+package qupath.ext.omero.gui.datatransporters.forms;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -8,10 +8,9 @@ import qupath.ext.omero.gui.UiUtilities;
 import java.io.IOException;
 
 /**
- * Form that can be used in a dialog to let the user choose
- * some parameters when importing annotations from an OMERO server.
+ * Form that lets the user choose some parameters when importing annotations from an OMERO server.
  */
-class AnnotationForm extends VBox {
+public class ImportAnnotationForm extends VBox {
 
     @FXML
     private CheckBox deleteAnnotations;
@@ -23,8 +22,8 @@ class AnnotationForm extends VBox {
      *
      * @throws IOException if an error occurs while creating the form
      */
-    public AnnotationForm() throws IOException {
-        UiUtilities.loadFXML(this, AnnotationForm.class.getResource("annotation_form.fxml"));
+    public ImportAnnotationForm() throws IOException {
+        UiUtilities.loadFXML(this, ImportAnnotationForm.class.getResource("import_annotation_form.fxml"));
     }
 
     /**

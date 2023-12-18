@@ -25,8 +25,13 @@ import javafx.scene.control.SeparatorMenuItem;
 
 import qupath.ext.omero.gui.UiUtilities;
 import qupath.ext.omero.gui.browser.BrowseMenu;
-import qupath.ext.omero.gui.importer.ImporterMenu;
-import qupath.ext.omero.gui.sender.SenderMenu;
+import qupath.ext.omero.gui.datatransporters.DataTransporterMenu;
+import qupath.ext.omero.gui.datatransporters.importers.AnnotationImporter;
+import qupath.ext.omero.gui.datatransporters.importers.ImageSettingsImporter;
+import qupath.ext.omero.gui.datatransporters.importers.KeyValuesImporter;
+import qupath.ext.omero.gui.datatransporters.senders.AnnotationSender;
+import qupath.ext.omero.gui.datatransporters.senders.ImageSettingsSender;
+import qupath.ext.omero.gui.datatransporters.senders.KeyValuesSender;
 import qupath.lib.common.Version;
 import qupath.lib.gui.actions.ActionTools;
 import qupath.lib.gui.QuPathGUI;
@@ -35,6 +40,7 @@ import qupath.lib.gui.extensions.QuPathExtension;
 import qupath.lib.gui.tools.MenuTools;
 import qupath.ext.omero.gui.connectionsmanager.ConnectionsManagerCommand;
 
+import java.util.List;
 import java.util.ResourceBundle;
 
 /**
@@ -43,8 +49,7 @@ import java.util.ResourceBundle;
  * <ul>
  *     <li>A browse menu, described in {@link qupath.ext.omero.gui.browser browser}.</li>
  *     <li>A connection manager action, described in {@link qupath.ext.omero.gui.connectionsmanager connection manager}.</li>
- *     <li>A menu to send entities to OMERO, described in {@link qupath.ext.omero.gui.sender sender}.</li>
- *     <li>A menu to import entities from OMERO, described in {@link qupath.ext.omero.gui.importer importer}.</li>
+ *     <li>A menu to send and a menu to import entities to OMERO, described in {@link qupath.ext.omero.gui.datatransporters data transporters}.</li>
  * </ul>
  */
 public class OmeroExtension implements QuPathExtension, GitHubProject {
@@ -69,8 +74,16 @@ public class OmeroExtension implements QuPathExtension, GitHubProject {
 									ConnectionsManagerCommand.getMenuTitle()
 							),
 							new SeparatorMenuItem(),
-							new SenderMenu(qupath),
-							new ImporterMenu(qupath)
+							new DataTransporterMenu(
+									resources.getString("Extension.sendToOMERO"),
+									qupath,
+									List.of(new AnnotationSender(), new KeyValuesSender(), new ImageSettingsSender())
+							),
+							new DataTransporterMenu(
+									resources.getString("Extension.importFromOMERO"),
+									qupath,
+									List.of(new AnnotationImporter(), new KeyValuesImporter(), new ImageSettingsImporter())
+							)
 					)
 			);
 		}

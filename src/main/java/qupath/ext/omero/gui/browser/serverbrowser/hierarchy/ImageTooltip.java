@@ -56,7 +56,7 @@ class ImageTooltip extends VBox {
         if (!image.isSupported().get()) {
             getChildren().add(errorContainer);
 
-            for (Image.UNSUPPORTED_REASON reason: image.getUnsupportedReasons()) {
+            for (Image.UnsupportedReason reason: image.getUnsupportedReasons()) {
                 Label error = new Label(switch (reason) {
                     case NUMBER_OF_CHANNELS -> resources.getString("Browser.ServerBrowser.Hierarchy.numberOfChannels");
                     case PIXEL_TYPE -> resources.getString("Browser.ServerBrowser.Hierarchy.pixelType");

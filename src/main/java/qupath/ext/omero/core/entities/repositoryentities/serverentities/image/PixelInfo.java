@@ -2,11 +2,12 @@ package qupath.ext.omero.core.entities.repositoryentities.serverentities.image;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
  * <p>This class contains various information related to the pixels of an image.</p>
- * <p>It uses the {@link PhysicalSize} and {@link ImageType} classes.</p>
+ * <p>It uses the {@link PhysicalSize}, {@link ImageType}, and {@link Channel} classes.</p>
  */
 class PixelInfo {
 
@@ -19,6 +20,7 @@ class PixelInfo {
     @SerializedName(value = "PhysicalSizeY") private PhysicalSize physicalSizeY;
     @SerializedName(value = "PhysicalSizeZ") private PhysicalSize physicalSizeZ;
     @SerializedName(value = "Type") private ImageType imageType;
+    @SerializedName(value = "Channels") private List<Channel> channels;
 
     @Override
     public String toString() {
@@ -71,5 +73,24 @@ class PixelInfo {
      */
     public Optional<String> getPixelType() {
         return imageType == null ? Optional.empty() : imageType.getValue();
+    }
+
+    /**
+     * Return the channels of this image. If one of the channel name is not found,
+     * the channel names take the values 0, 1, 2... depending on the number of channels.
+     *
+     * @return the channels of this image
+     */
+    public List<Channel> getChannels() {
+        if (channels == null) {
+            return List.of();
+        } else {
+            if (channels.stream().map(Channel::getName).anyMatch(Optional::isEmpty)) {
+                for (int i=0; i<channels.size(); ++i) {
+                    channels.get(i).setName(String.valueOf(i));
+                }
+            }
+            return channels;
+        }
     }
 }

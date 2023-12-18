@@ -430,6 +430,10 @@ public abstract class OmeroServer {
         return 3;
     }
 
+    protected static List<String> getRGBImageChannelsName() {
+        return List.of("0", "1", "2");
+    }
+
     protected static int getRGBImageNumberOfTimePoints() {
         return 1;
     }
@@ -582,6 +586,10 @@ public abstract class OmeroServer {
         return 28.605;
     }
 
+    protected static List<String> getFloat32ImageChannelsName() {
+        return List.of("0", "1", "2");
+    }
+
     protected static Image getFloat64Image() {
         return getImagesInDataset().get(8);
     }
@@ -628,6 +636,10 @@ public abstract class OmeroServer {
 
     protected static int getComplexImageNumberOfChannels() {
         return 1;
+    }
+
+    protected static List<String> getComplexImageChannelsName() {
+        return List.of("0");
     }
 
     protected static int getComplexImageNumberOfTimePoints() {

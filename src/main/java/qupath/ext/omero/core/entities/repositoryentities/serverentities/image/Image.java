@@ -40,11 +40,11 @@ public class Image extends ServerEntity {
             resources.getString("Web.Entities.Image.pixelSizeZ"),
             resources.getString("Web.Entities.Image.pixelType")
     };
-    private transient EnumSet<UNSUPPORTED_REASON> unsupportedReasons;
+    private transient EnumSet<UnsupportedReason> unsupportedReasons;
     private transient BooleanProperty isSupported;
     @SerializedName(value = "AcquisitionDate") private long acquisitionDate;
     @SerializedName(value = "Pixels") private PixelInfo pixels;
-    public enum UNSUPPORTED_REASON {
+    public enum UnsupportedReason {
         NUMBER_OF_CHANNELS,
         PIXEL_TYPE,
         PIXEL_API_UNAVAILABLE
@@ -163,7 +163,7 @@ public class Image extends ServerEntity {
      */
     public void setWebClient(WebClient client) {
         isSupported = new SimpleBooleanProperty();
-        unsupportedReasons = EnumSet.noneOf(UNSUPPORTED_REASON.class);
+        unsupportedReasons = EnumSet.noneOf(UnsupportedReason.class);
 
         setSupported(client);
         client.getSelectedPixelAPI().addListener(change -> setSupported(client));
@@ -187,7 +187,7 @@ public class Image extends ServerEntity {
      * @return the reasons why this image is unsupported (empty if this image is supported)
      * @throws IllegalStateException when the web client has not been set (see {@link #setWebClient(WebClient)})
      */
-    public Set<UNSUPPORTED_REASON> getUnsupportedReasons() {
+    public Set<UnsupportedReason> getUnsupportedReasons() {
         if (unsupportedReasons == null) {
             throw new IllegalStateException(
                     "The web client has not been set on this image. See the setWebClient(WebClient) function."
@@ -197,10 +197,26 @@ public class Image extends ServerEntity {
     }
 
     /**
-     * @return a text describing the pixel type of this image, or an empty Optional if not found
+     * @return the name of this image, or an empty String if not found
      */
-    public Optional<String> getPixelType() {
-        return pixels == null ? Optional.empty() : pixels.getPixelType();
+    public String getName() {
+        return name == null ? "" : name;
+    }
+
+    /**
+     * <p>Return the name of channel of this image.</p>
+     * <p>
+     *     If this image was created with {@link ApisHandler#getImages(long)}}, the returned list
+     *     will be empty.
+     * </p>
+     *
+     * @return the channel names of this image, or an empty list if not found
+     */
+    public List<String> getChannelsName() {
+        return pixels == null ? List.of() : pixels.getChannels().stream()
+                .map(Channel::getName)
+                .flatMap(Optional::stream)
+                .toList();
     }
 
     private Optional<int[]> getImageDimensions() {
@@ -209,6 +225,10 @@ public class Image extends ServerEntity {
         } else {
             return Optional.of(pixels.getImageDimensions());
         }
+    }
+
+    private Optional<String> getPixelType() {
+        return pixels == null ? Optional.empty() : pixels.getPixelType();
     }
 
     private Optional<PhysicalSize> getPhysicalSizeX() {
@@ -229,7 +249,7 @@ public class Image extends ServerEntity {
 
         if (client.getSelectedPixelAPI() == null) {
             isSupported.set(false);
-            unsupportedReasons.add(UNSUPPORTED_REASON.PIXEL_API_UNAVAILABLE);
+            unsupportedReasons.add(UnsupportedReason.PIXEL_API_UNAVAILABLE);
         } else {
             if (!getPixelType()
                     .flatMap(ApisHandler::getPixelType)
@@ -237,7 +257,7 @@ public class Image extends ServerEntity {
                     .orElse(false)
             ) {
                 isSupported.set(false);
-                unsupportedReasons.add(UNSUPPORTED_REASON.PIXEL_TYPE);
+                unsupportedReasons.add(UnsupportedReason.PIXEL_TYPE);
             }
 
             if (!getImageDimensions()
@@ -245,7 +265,7 @@ public class Image extends ServerEntity {
                     .orElse(false)
             ) {
                 isSupported.set(false);
-                unsupportedReasons.add(UNSUPPORTED_REASON.NUMBER_OF_CHANNELS);
+                unsupportedReasons.add(UnsupportedReason.NUMBER_OF_CHANNELS);
             }
         }
     }
