@@ -5,15 +5,14 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
 
-
-<fx:root spacing="10.0" type="VBox" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root spacing="10.0" type="VBox" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml">
    <children>
       <Label text="%DataTransporters.Forms.ImageSettings.selectUpdate">
          <VBox.margin>
             <Insets bottom="5.0" top="5.0" />
          </VBox.margin>
       </Label>
-      <CheckBox fx:id="imageName" mnemonicParsing="false" text="%DataTransporters.Forms.ImageSettings.imageName" />
-      <CheckBox fx:id="channelNames" mnemonicParsing="false" text="%DataTransporters.Forms.ImageSettings.channelNames" />
+      <CheckBox fx:id="imageName" mnemonicParsing="false" selected="true" text="%DataTransporters.Forms.ImageSettings.imageName" />
+      <CheckBox fx:id="channelNames" mnemonicParsing="false" selected="true" text="%DataTransporters.Forms.ImageSettings.channelNames" />
    </children>
 </fx:root>

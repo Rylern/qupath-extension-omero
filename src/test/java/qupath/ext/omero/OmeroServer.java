@@ -639,7 +639,7 @@ public abstract class OmeroServer {
     }
 
     protected static List<String> getComplexImageChannelsName() {
-        return List.of("");
+        return List.of("0");
     }
 
     protected static int getComplexImageNumberOfTimePoints() {

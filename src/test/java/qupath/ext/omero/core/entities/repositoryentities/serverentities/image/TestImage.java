@@ -71,39 +71,7 @@ public class TestImage extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createUnauthenticatedClient();
 
-            while (client.getServer().isPopulatingChildren()) {
-                TimeUnit.MILLISECONDS.sleep(50);
-            }
-            Project project = client.getServer().getChildren().stream()
-                    .filter(child -> child instanceof Project)
-                    .map(p -> (Project) p)
-                    .findAny()
-                    .orElse(null);
-            assert project != null;
-
-            List<? extends RepositoryEntity> projectChildren = project.getChildren();
-            while (project.isPopulatingChildren()) {
-                TimeUnit.MILLISECONDS.sleep(50);
-            }
-
-            Dataset dataset = projectChildren.stream()
-                    .filter(child -> child instanceof Dataset)
-                    .map(d -> (Dataset) d)
-                    .findAny()
-                    .orElse(null);
-            assert dataset != null;
-
-            List<? extends RepositoryEntity> datasetChildren = dataset.getChildren();
-            while (dataset.isPopulatingChildren()) {
-                TimeUnit.MILLISECONDS.sleep(50);
-            }
-
-            image = datasetChildren.stream()
-                    .filter(child -> child instanceof Image)
-                    .map(d -> (Image) d)
-                    .filter(image -> image.equals(OmeroServer.getRGBImage()))
-                    .findAny()
-                    .orElse(null);
+            image = client.getApisHandler().getImage(OmeroServer.getRGBImage().getId()).get().orElse(null);
         }
 
         @Test
@@ -141,6 +109,7 @@ public class TestImage extends OmeroServer {
             TestUtilities.assertCollectionsEqualsWithoutOrder(expectedReasons, reasons);
         }
 
+        @Test
         @Override
         void Check_Name() {
             String expectedName = OmeroServer.getRGBImageName();
@@ -150,6 +119,7 @@ public class TestImage extends OmeroServer {
             Assertions.assertEquals(expectedName, name);
         }
 
+        @Test
         @Override
         void Check_Channels_Name() {
             List<String> expectedChannelsName = OmeroServer.getRGBImageChannelsName();
@@ -167,27 +137,7 @@ public class TestImage extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createUnauthenticatedClient();
 
-            while (client.getServer().isPopulatingChildren()) {
-                TimeUnit.MILLISECONDS.sleep(50);
-            }
-
-            OrphanedFolder orphanedFolder = client.getServer().getChildren().stream()
-                    .filter(child -> child instanceof OrphanedFolder)
-                    .map(p -> (OrphanedFolder) p)
-                    .findAny()
-                    .orElse(null);
-            assert orphanedFolder != null;
-
-            List<? extends RepositoryEntity> orphanedFolderChildren = orphanedFolder.getChildren();
-            while (orphanedFolder.isPopulatingChildren()) {
-                TimeUnit.MILLISECONDS.sleep(50);
-            }
-
-            image = orphanedFolderChildren.stream()
-                    .filter(child -> child instanceof Image)
-                    .map(d -> (Image) d)
-                    .findAny()
-                    .orElse(null);
+            image = client.getApisHandler().getImage(OmeroServer.getComplexImage().getId()).get().orElse(null);
         }
 
         @Test
@@ -225,6 +175,7 @@ public class TestImage extends OmeroServer {
             TestUtilities.assertCollectionsEqualsWithoutOrder(expectedReasons, reasons);
         }
 
+        @Test
         @Override
         void Check_Name() {
             String expectedName = OmeroServer.getComplexImageName();

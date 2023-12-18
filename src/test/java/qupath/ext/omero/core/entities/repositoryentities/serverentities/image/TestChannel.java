@@ -10,7 +10,7 @@ public class TestChannel {
     void Check_Empty() {
         Channel channel = new Gson().fromJson("{}", Channel.class);
 
-        String channelName = channel.getName();
+        String channelName = channel.getName().orElse("");
 
         Assertions.assertTrue(channelName.isEmpty());
     }
@@ -20,9 +20,19 @@ public class TestChannel {
         Channel channel = createChannel();
         String expectedChannelName = "Channel name";
 
-        String channelName = channel.getName();
+        String channelName = channel.getName().orElse("");
 
         Assertions.assertEquals(expectedChannelName, channelName);
+    }
+
+    @Test
+    void Check_Name_Changed() {
+        Channel channel = createChannel();
+        String expectedChannelName = "New channel name";
+
+        channel.setName(expectedChannelName);
+
+        Assertions.assertEquals(expectedChannelName, channel.getName().orElse(""));
     }
 
     private Channel createChannel() {

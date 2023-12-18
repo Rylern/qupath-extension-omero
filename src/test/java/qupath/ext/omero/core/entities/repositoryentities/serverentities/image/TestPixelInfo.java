@@ -76,7 +76,7 @@ public class TestPixelInfo {
 
         List<Channel> channels = pixelInfo.getChannels();
 
-        TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelsName, channels.stream().map(Channel::getName).toList());
+        TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelsName, channels.stream().map(Channel::getName).flatMap(Optional::stream).toList());
     }
 
     private PixelInfo createPixelInfo() {

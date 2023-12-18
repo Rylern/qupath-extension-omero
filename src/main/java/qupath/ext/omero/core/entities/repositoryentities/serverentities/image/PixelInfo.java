@@ -76,9 +76,21 @@ class PixelInfo {
     }
 
     /**
-     * @return the channels
+     * Return the channels of this image. If one of the channel name is not found,
+     * the channel names take the values 0, 1, 2... depending on the number of channels.
+     *
+     * @return the channels of this image
      */
     public List<Channel> getChannels() {
-        return channels == null ? List.of() : channels;
+        if (channels == null) {
+            return List.of();
+        } else {
+            if (channels.stream().map(Channel::getName).anyMatch(Optional::isEmpty)) {
+                for (int i=0; i<channels.size(); ++i) {
+                    channels.get(i).setName(String.valueOf(i));
+                }
+            }
+            return channels;
+        }
     }
 }

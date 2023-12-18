@@ -204,10 +204,19 @@ public class Image extends ServerEntity {
     }
 
     /**
-     * @return the names of each channel of this image, or an empty list if not found
+     * <p>Return the name of channel of this image.</p>
+     * <p>
+     *     If this image was created with {@link ApisHandler#getImages(long)}}, the returned list
+     *     will be empty.
+     * </p>
+     *
+     * @return the channel names of this image, or an empty list if not found
      */
     public List<String> getChannelsName() {
-        return pixels == null ? List.of() : pixels.getChannels().stream().map(Channel::getName).toList();
+        return pixels == null ? List.of() : pixels.getChannels().stream()
+                .map(Channel::getName)
+                .flatMap(Optional::stream)
+                .toList();
     }
 
     private Optional<int[]> getImageDimensions() {
