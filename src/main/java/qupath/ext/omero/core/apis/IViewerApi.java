@@ -3,6 +3,7 @@ package qupath.ext.omero.core.apis;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import qupath.ext.omero.core.entities.image.ImageSettings;
 import qupath.ext.omero.core.entities.shapes.Shape;
 import qupath.ext.omero.core.WebUtilities;
 import qupath.ext.omero.core.RequestSender;
@@ -10,6 +11,7 @@ import qupath.ext.omero.core.RequestSender;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,7 @@ class IViewerApi {
         }
         """;
     private static final String ROIS_REFERER_URL = "%s/iviewer/?images=%d";
+    private static final String IMAGE_SETTINGS_URL = "%s/iviewer/image_data/%d/";
     private final URI host;
 
     /**
@@ -96,6 +99,29 @@ class IViewerApi {
             });
         } else {
             return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    /**
+     * <p>
+     *     Attempt to retrieve the settings of an image.
+     * </p>
+     * <p>This function is asynchronous.</p>
+     *
+     * @param imageId  the id of the image whose settings should be retrieved
+     * @return a CompletableFuture with the retrieved image settings, or an empty Optional if the request failed
+     */
+    public CompletableFuture<Optional<ImageSettings>> getImageSettings(long imageId) {
+        var uri = WebUtilities.createURI(String.format(
+                IMAGE_SETTINGS_URL,
+                host,
+                imageId
+        ));
+
+        if (uri.isPresent()) {
+            return RequestSender.getAndConvert(uri.get(), ImageSettings.class);
+        } else {
+            return CompletableFuture.completedFuture(Optional.empty());
         }
     }
 }

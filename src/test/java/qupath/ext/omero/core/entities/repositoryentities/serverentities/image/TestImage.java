@@ -56,12 +56,6 @@ public class TestImage extends OmeroServer {
 
         @Test
         abstract void Check_Unsupported_Reasons();
-
-        @Test
-        abstract void Check_Name();
-
-        @Test
-        abstract void Check_Channels_Name();
     }
 
     @Nested
@@ -108,26 +102,6 @@ public class TestImage extends OmeroServer {
 
             TestUtilities.assertCollectionsEqualsWithoutOrder(expectedReasons, reasons);
         }
-
-        @Test
-        @Override
-        void Check_Name() {
-            String expectedName = OmeroServer.getRGBImageName();
-
-            String name = image.getName();
-
-            Assertions.assertEquals(expectedName, name);
-        }
-
-        @Test
-        @Override
-        void Check_Channels_Name() {
-            List<String> expectedChannelsName = OmeroServer.getRGBImageChannelsName();
-
-            List<String> channelsName = image.getChannelsName();
-
-            TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelsName, channelsName);
-        }
     }
 
     @Nested
@@ -173,26 +147,6 @@ public class TestImage extends OmeroServer {
             Set<Image.UnsupportedReason> reasons = image.getUnsupportedReasons();
 
             TestUtilities.assertCollectionsEqualsWithoutOrder(expectedReasons, reasons);
-        }
-
-        @Test
-        @Override
-        void Check_Name() {
-            String expectedName = OmeroServer.getComplexImageName();
-
-            String name = image.getName();
-
-            Assertions.assertEquals(expectedName, name);
-        }
-
-        @Test
-        @Override
-        void Check_Channels_Name() {
-            List<String> expectedChannelsName = OmeroServer.getComplexImageChannelsName();
-
-            List<String> channelsName = image.getChannelsName();
-
-            TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelsName, channelsName);
         }
     }
 }

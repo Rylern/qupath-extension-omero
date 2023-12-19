@@ -3,7 +3,8 @@ package qupath.ext.omero.core.apis;
 import com.drew.lang.annotations.Nullable;
 import javafx.beans.property.*;
 import qupath.ext.omero.core.entities.annotations.AnnotationGroup;
-import qupath.ext.omero.core.entities.channels.ChannelDisplayRangeColor;
+import qupath.ext.omero.core.entities.image.ChannelSettings;
+import qupath.ext.omero.core.entities.image.ImageSettings;
 import qupath.ext.omero.core.entities.login.LoginResponse;
 import qupath.ext.omero.core.entities.repositoryentities.OrphanedFolder;
 import qupath.ext.omero.core.entities.repositoryentities.RepositoryEntity;
@@ -369,10 +370,10 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebclientApi#changeChannelsName(long, List)}.
+     * See {@link WebclientApi#changeChannelNames(long, List)}.
      */
-    public CompletableFuture<Boolean> changeChannelsName(long imageId, List<String> channelsName) {
-        return webclientApi.changeChannelsName(imageId, channelsName);
+    public CompletableFuture<Boolean> changeChannelNames(long imageId, List<String> channelsName) {
+        return webclientApi.changeChannelNames(imageId, channelsName);
     }
 
     /**
@@ -494,8 +495,8 @@ public class ApisHandler implements AutoCloseable {
     /**
      * See {@link WebGatewayApi#changeChannelDisplayRangesAndColors(long, List)}.
      */
-    public CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelDisplayRangeColor> channelDisplayRangeColors) {
-        return webGatewayApi.changeChannelDisplayRangesAndColors(imageID, channelDisplayRangeColors);
+    public CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelSettings> channelSettings) {
+        return webGatewayApi.changeChannelDisplayRangesAndColors(imageID, channelSettings);
     }
 
     /**
@@ -512,5 +513,12 @@ public class ApisHandler implements AutoCloseable {
         CompletableFuture<List<Shape>> roisToRemoveFuture = removeExistingROIs ? getROIs(id) : CompletableFuture.completedFuture(List.of());
 
         return roisToRemoveFuture.thenCompose(roisToRemove -> iViewerApi.writeROIs(id, shapes, roisToRemove, jsonApi.getToken()));
+    }
+
+    /**
+     * See {@link IViewerApi#getImageSettings(long)}.
+     */
+    public CompletableFuture<Optional<ImageSettings>> getImageSettings(long imageId) {
+        return iViewerApi.getImageSettings(imageId);
     }
 }

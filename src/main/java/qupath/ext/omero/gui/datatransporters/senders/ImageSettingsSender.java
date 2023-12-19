@@ -115,7 +115,7 @@ public class ImageSettingsSender implements DataTransporter {
                             omeroImageServer.getId(),
                             omeroImageServer.getMetadata().getName()
                     );
-                    case CHANNEL_NAMES -> omeroImageServer.getClient().getApisHandler().changeChannelsName(
+                    case CHANNEL_NAMES -> omeroImageServer.getClient().getApisHandler().changeChannelNames(
                             omeroImageServer.getId(),
                             omeroImageServer.getMetadata().getChannels().stream().map(ImageChannel::getName).toList()
                     );

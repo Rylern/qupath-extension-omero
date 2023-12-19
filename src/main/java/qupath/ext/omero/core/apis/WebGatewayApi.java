@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import qupath.ext.omero.core.entities.channels.ChannelDisplayRangeColor;
+import qupath.ext.omero.core.entities.image.ChannelSettings;
 import qupath.lib.awt.common.BufferedImageTools;
 import qupath.lib.images.servers.TileRequest;
 import qupath.ext.omero.core.entities.imagemetadata.ImageMetadataResponse;
@@ -18,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * <p>API to communicate with a OMERO.gateway server.</p>
@@ -211,15 +213,27 @@ class WebGatewayApi {
      * <p>This function is asynchronous.</p>
      *
      * @param imageID  the ID of the image to change the channel settings
-     * @param channelDisplayRangeColors  the new channel display ranges and colors
+     * @param channelSettings  the new channel display ranges and colors
      * @return a CompletableFuture indicating the success of the operation
      */
-    public CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelDisplayRangeColor> channelDisplayRangeColors) {
+    public CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelSettings> channelSettings) {
         var uri = WebUtilities.createURI(String.format(
                 CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS,
                 host,
                 imageID,
-                URLEncoder.encode(ChannelDisplayRangeColor.getOmeroRepresentation(channelDisplayRangeColors), StandardCharsets.UTF_8)
+                URLEncoder.encode(
+                        IntStream
+                                .range(0, channelSettings.size())
+                                .mapToObj(i -> String.format(
+                                        "%d|%f:%f$%s",
+                                        i + 1,
+                                        channelSettings.get(i).getMinDisplayRange(),
+                                        channelSettings.get(i).getMaxDisplayRange(),
+                                        channelSettings.get(i).getRgbColorHex()
+                                ))
+                                .collect(Collectors.joining(",")),
+                        StandardCharsets.UTF_8
+                )
         ));
 
         if (uri.isPresent()) {
