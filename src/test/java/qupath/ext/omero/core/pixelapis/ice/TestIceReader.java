@@ -5,7 +5,6 @@ import qupath.ext.omero.OmeroServer;
 import qupath.ext.omero.core.WebClient;
 import qupath.ext.omero.core.WebClients;
 import qupath.ext.omero.core.pixelapis.PixelAPIReader;
-import qupath.ext.omero.core.pixelapis.mspixelbuffer.MsPixelBufferAPI;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
 import qupath.ext.omero.imagesserver.OmeroImageServerBuilder;
 import qupath.lib.analysis.stats.Histogram;
