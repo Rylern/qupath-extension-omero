@@ -38,6 +38,25 @@ public class ChannelSettings {
         this("", minDisplayRange, maxDisplayRange, rgbColorHex);
     }
 
+    /**
+     * Create a new channel settings
+     *
+     * @param rgbColorHex  the RGB color of this channel in the hexadecimal format (e.g. FF0000 for red)
+     */
+    public ChannelSettings(String rgbColorHex) {
+        this("", 0, 0, rgbColorHex);
+    }
+
+    /**
+     * Create a new channel settings
+     *
+     * @param minDisplayRange  the minimum table lookup value for this channel
+     * @param maxDisplayRange  the maximum table lookup value for this channel
+     */
+    public ChannelSettings(double minDisplayRange, double maxDisplayRange) {
+        this("", minDisplayRange, maxDisplayRange, "");
+    }
+
     @Override
     public String toString() {
         return String.format("Channel %s of color %s, from %f to %f", name, rgbColorHex, minDisplayRange, maxDisplayRange);

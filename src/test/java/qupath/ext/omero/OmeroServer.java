@@ -24,8 +24,6 @@ import qupath.ext.omero.core.entities.repositoryentities.serverentities.*;
 import qupath.ext.omero.core.entities.repositoryentities.serverentities.image.Image;
 import qupath.ext.omero.core.entities.search.SearchResult;
 import qupath.ext.omero.core.pixelapis.mspixelbuffer.MsPixelBufferAPI;
-import qupath.ext.omero.imagesserver.OmeroImageServer;
-import qupath.ext.omero.imagesserver.OmeroImageServerBuilder;
 import qupath.lib.images.servers.PixelType;
 
 import java.io.IOException;
@@ -237,10 +235,6 @@ public abstract class OmeroServer {
                 "-p",
                 getRootPassword()
         );
-    }
-
-    protected static OmeroImageServer createImageServer(URI uri) {
-        return (OmeroImageServer) new OmeroImageServerBuilder().buildServer(uri, "--pixelAPI", "Pixel Buffer Microservice");
     }
 
     protected static String getServerURI() {

@@ -25,7 +25,7 @@ public class TestOmeroImageServer extends OmeroServer {
     @BeforeAll
     static void createImageServer() throws ExecutionException, InterruptedException {
         client = OmeroServer.createAuthenticatedClient();
-        imageServer = OmeroServer.createImageServer(getRGBImageURI());
+        imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(getRGBImageURI(), "--pixelAPI", "Web");
     }
 
     @AfterAll

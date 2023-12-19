@@ -691,10 +691,16 @@ public class TestApisHandler extends OmeroServer {
         }
 
         @Test
-        abstract void Check_Channel_Display_Ranges_And_Colors_Can_Be_Changed() throws ExecutionException, InterruptedException;
+        abstract void Check_Channel_Colors_Can_Be_Changed() throws ExecutionException, InterruptedException;
 
         @Test
-        abstract void Check_Channel_Display_Ranges_And_Colors_Changed() throws ExecutionException, InterruptedException;
+        abstract void Check_Channel_Colors_Changed() throws ExecutionException, InterruptedException;
+
+        @Test
+        abstract void Check_Channel_Display_Ranges_Can_Be_Changed() throws ExecutionException, InterruptedException;
+
+        @Test
+        abstract void Check_Channel_Display_Ranges_Changed() throws ExecutionException, InterruptedException;
 
         @Test
         void Check_Get_ROIs_With_Invalid_Image_ID() throws ExecutionException, InterruptedException {
@@ -805,24 +811,44 @@ public class TestApisHandler extends OmeroServer {
 
         @Test
         @Override
-        void Check_Channel_Display_Ranges_And_Colors_Can_Be_Changed() throws ExecutionException, InterruptedException {
+        void Check_Channel_Colors_Can_Be_Changed() throws ExecutionException, InterruptedException {
             Image image = OmeroServer.getFloat32Image();
-            List<ChannelSettings> channelSettings = List.of(
-                    new ChannelSettings(0.45, 100.654, "00FFFF"),
-                    new ChannelSettings(50, 200, "FF00FF"),
-                    new ChannelSettings(75.64, 80.9807, "FFFF00")
+            List<Integer> channelColors = List.of(
+                    Integer.parseInt("00FFFF", 16),
+                    Integer.parseInt("FF00FF", 16),
+                    Integer.parseInt("FFFF00", 16)
             );
 
-            boolean status = apisHandler.changeChannelDisplayRangesAndColors(image.getId(), channelSettings).get();
+            boolean status = apisHandler.changeChannelColors(image.getId(), channelColors).get();
 
             Assertions.assertFalse(status);
         }
 
         @Test
         @Override
-        void Check_Channel_Display_Ranges_And_Colors_Changed() {
-            // Empty because channel display ranges and colors can't be changed, see Check_Channel_Display_Ranges_And_Colors_Can_Be_Changed
+        void Check_Channel_Colors_Changed() {
+            // Empty because channel colors can't be changed, see Check_Channel_Colors_Can_Be_Changed
+        }
 
+        @Test
+        @Override
+        void Check_Channel_Display_Ranges_Can_Be_Changed() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getFloat32Image();
+            List<ChannelSettings> channelSettings = List.of(
+                    new ChannelSettings(0.45, 100.654),
+                    new ChannelSettings(50, 200),
+                    new ChannelSettings(75.64, 80.9807)
+            );
+
+            boolean status = apisHandler.changeChannelDisplayRanges(image.getId(), channelSettings).get();
+
+            Assertions.assertFalse(status);
+        }
+
+        @Test
+        @Override
+        void Check_Channel_Display_Ranges_Changed() {
+            // Empty because channel display ranges can't be changed, see Check_Channel_Display_Ranges_Can_Be_Changed
         }
 
         @Test
@@ -1067,39 +1093,104 @@ public class TestApisHandler extends OmeroServer {
 
         @Test
         @Override
-        void Check_Channel_Display_Ranges_And_Colors_Can_Be_Changed() throws ExecutionException, InterruptedException {
+        void Check_Channel_Colors_Can_Be_Changed() throws ExecutionException, InterruptedException {
             Image image = OmeroServer.getFloat32Image();
-            List<ChannelSettings> channelSettings = List.of(
-                    new ChannelSettings(0.45, 100.654, "00FFFF"),
-                    new ChannelSettings(50, 200, "FF00FF"),
-                    new ChannelSettings(75.64, 80.9807, "FFFF00")
+            List<Integer> channelColors = List.of(
+                    Integer.parseInt("00FFFF", 16),
+                    Integer.parseInt("FF00FF", 16),
+                    Integer.parseInt("FFFF00", 16)
             );
 
-            boolean status = apisHandler.changeChannelDisplayRangesAndColors(image.getId(), channelSettings).get();
+            boolean status = apisHandler.changeChannelColors(image.getId(), channelColors).get();
 
             Assertions.assertTrue(status);
 
-            // Reset channel display ranges and colors
-            apisHandler.changeChannelDisplayRangesAndColors(image.getId(), OmeroServer.getFloat32ChannelSettings()).get();
+            // Reset channel colors
+            apisHandler.changeChannelColors(image.getId(), OmeroServer.getFloat32ChannelSettings().stream()
+                    .map(ChannelSettings::getRgbColorHex)
+                    .map(hex -> Integer.parseInt(hex, 16))
+                    .toList()
+            ).get();
         }
 
         @Test
         @Override
-        void Check_Channel_Display_Ranges_And_Colors_Changed() throws ExecutionException, InterruptedException {
+        void Check_Channel_Colors_Changed() throws ExecutionException, InterruptedException {
             Image image = OmeroServer.getFloat32Image();
-            List<ChannelSettings> expectedChannelSettings = List.of(
-                    new ChannelSettings(OmeroServer.getFloat32ChannelSettings().get(0).getName(), 0.45, 100.654, "00FFFF"),
-                    new ChannelSettings(OmeroServer.getFloat32ChannelSettings().get(1).getName(), 50, 200, "FF00FF"),
-                    new ChannelSettings(OmeroServer.getFloat32ChannelSettings().get(2).getName(), 75.64, 80.9807, "FFFF00")
+            List<Integer> expectedChannelColors = List.of(
+                    Integer.parseInt("00FFFF", 16),
+                    Integer.parseInt("FF00FF", 16),
+                    Integer.parseInt("FFFF00", 16)
             );
 
-            apisHandler.changeChannelDisplayRangesAndColors(image.getId(), expectedChannelSettings).get();
+            apisHandler.changeChannelColors(image.getId(), expectedChannelColors).get();
+
+            List<Integer> channelColors = Objects.requireNonNull(apisHandler.getImageSettings(image.getId()).get().orElse(null))
+                    .getChannelSettings()
+                    .stream()
+                    .map(ChannelSettings::getRgbColorHex)
+                    .map(hex -> Integer.parseInt(hex, 16))
+                    .toList();
+            TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelColors, channelColors);
+
+            // Reset channel colors
+            apisHandler.changeChannelColors(image.getId(), OmeroServer.getFloat32ChannelSettings().stream()
+                    .map(ChannelSettings::getRgbColorHex)
+                    .map(hex -> Integer.parseInt(hex, 16))
+                    .toList()
+            ).get();
+        }
+
+        @Test
+        @Override
+        void Check_Channel_Display_Ranges_Can_Be_Changed() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getFloat32Image();
+            List<ChannelSettings> channelSettings = List.of(
+                    new ChannelSettings(0.45, 100.654),
+                    new ChannelSettings(50, 200),
+                    new ChannelSettings(75.64, 80.9807)
+            );
+
+            boolean status = apisHandler.changeChannelDisplayRanges(image.getId(), channelSettings).get();
+
+            Assertions.assertTrue(status);
+
+            // Reset channel display ranges
+            apisHandler.changeChannelDisplayRanges(image.getId(), OmeroServer.getFloat32ChannelSettings()).get();
+        }
+
+        @Test
+        @Override
+        void Check_Channel_Display_Ranges_Changed() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getFloat32Image();
+            List<ChannelSettings> expectedChannelSettings = List.of(
+                    new ChannelSettings(
+                            OmeroServer.getFloat32ChannelSettings().get(0).getName(),
+                            0.45,
+                            100.654,
+                            OmeroServer.getFloat32ChannelSettings().get(0).getRgbColorHex()
+                    ),
+                    new ChannelSettings(
+                            OmeroServer.getFloat32ChannelSettings().get(1).getName(),
+                            50,
+                            200,
+                            OmeroServer.getFloat32ChannelSettings().get(1).getRgbColorHex()
+                    ),
+                    new ChannelSettings(
+                            OmeroServer.getFloat32ChannelSettings().get(2).getName(),
+                            75.64,
+                            80.9807,
+                            OmeroServer.getFloat32ChannelSettings().get(2).getRgbColorHex()
+                    )
+            );
+
+            apisHandler.changeChannelDisplayRanges(image.getId(), expectedChannelSettings).get();
 
             List<ChannelSettings> channelSettings = Objects.requireNonNull(apisHandler.getImageSettings(image.getId()).get().orElse(null)).getChannelSettings();
             TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelSettings, channelSettings);
 
-            // Reset channel display ranges and colors
-            apisHandler.changeChannelDisplayRangesAndColors(image.getId(), OmeroServer.getFloat32ChannelSettings()).get();
+            // Reset channel display ranges
+            apisHandler.changeChannelDisplayRanges(image.getId(), OmeroServer.getFloat32ChannelSettings()).get();
         }
 
         @Test

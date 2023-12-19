@@ -493,10 +493,29 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebGatewayApi#changeChannelDisplayRangesAndColors(long, List)}.
+     * See {@link WebGatewayApi#changeChannelColors(long, List, List)}.
      */
-    public CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelSettings> channelSettings) {
-        return webGatewayApi.changeChannelDisplayRangesAndColors(imageID, channelSettings);
+    public CompletableFuture<Boolean> changeChannelColors(long imageID, List<Integer> newChannelColors) {
+        return getImageSettings(imageID).thenCompose(imageSettings -> {
+            if (imageSettings.isPresent()) {
+                return webGatewayApi.changeChannelColors(imageID, newChannelColors, imageSettings.get().getChannelSettings());
+            } else {
+                return CompletableFuture.completedFuture(false);
+            }
+        });
+    }
+
+    /**
+     * See {@link WebGatewayApi#changeChannelDisplayRanges(long, List, List)}.
+     */
+    public CompletableFuture<Boolean> changeChannelDisplayRanges(long imageID, List<ChannelSettings> newChannelSettings) {
+        return getImageSettings(imageID).thenCompose(imageSettings -> {
+            if (imageSettings.isPresent()) {
+                return webGatewayApi.changeChannelDisplayRanges(imageID, newChannelSettings, imageSettings.get().getChannelSettings());
+            } else {
+                return CompletableFuture.completedFuture(false);
+            }
+        });
     }
 
     /**

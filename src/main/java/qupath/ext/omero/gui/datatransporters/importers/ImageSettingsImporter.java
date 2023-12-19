@@ -9,6 +9,8 @@ import qupath.ext.omero.gui.datatransporters.DataTransporter;
 import qupath.ext.omero.gui.datatransporters.forms.ImageSettingsForm;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
 import qupath.fx.dialogs.Dialogs;
+import qupath.lib.display.ChannelDisplayInfo;
+import qupath.lib.display.ImageDisplay;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.viewer.QuPathViewer;
 import qupath.lib.images.ImageData;
@@ -19,6 +21,7 @@ import qupath.lib.projects.Project;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.stream.IntStream;
 
@@ -99,6 +102,30 @@ public class ImageSettingsImporter implements DataTransporter {
                             }
                         }
 
+                        if (selectedChoices.contains(ImageSettingsForm.Choice.CHANNEL_COLORS)) {
+                            if (changeChannelColors(omeroImageServer, viewer, imageSettings.get().getChannelSettings())) {
+                                successMessage
+                                        .append(resources.getString("DataTransporters.ImageSettingsImporter.channelColorsUpdated"))
+                                        .append("\n");
+                            } else {
+                                errorMessage
+                                        .append(resources.getString("DataTransporters.ImageSettingsImporter.channelColorsNotUpdated"))
+                                        .append("\n");
+                            }
+                        }
+
+                        if (selectedChoices.contains(ImageSettingsForm.Choice.CHANNEL_DISPLAY_RANGES)) {
+                            if (changeChannelDisplayRanges(viewer, imageSettings.get().getChannelSettings())) {
+                                successMessage
+                                        .append(resources.getString("DataTransporters.ImageSettingsImporter.channelDisplayRangesUpdated"))
+                                        .append("\n");
+                            } else {
+                                errorMessage
+                                        .append(resources.getString("DataTransporters.ImageSettingsImporter.channelDisplayRangesNotUpdated"))
+                                        .append("\n");
+                            }
+                        }
+
                         if (!errorMessage.isEmpty()) {
                             Dialogs.showErrorMessage(
                                     resources.getString("DataTransporters.ImageSettingsImporter.importImageSettings"),
@@ -151,6 +178,53 @@ public class ImageSettingsImporter implements DataTransporter {
                     )
                     .build()
             );
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private static boolean changeChannelColors(OmeroImageServer omeroImageServer, QuPathViewer viewer, List<ChannelSettings> channelSettings) {
+        List<ImageChannel> channels = omeroImageServer.getMetadata().getChannels();
+        List<Integer> newChannelColors = channelSettings.stream()
+                .map(ChannelSettings::getRgbColorHex)
+                .map(hex -> {
+                    try {
+                        return Integer.parseInt(hex, 16);
+                    } catch (NumberFormatException e) {
+                        logger.warn(String.format("Could not convert channel color %s to Integer", hex), e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (channels.size() == newChannelColors.size()) {
+            viewer.getImageData().updateServerMetadata(new ImageServerMetadata.Builder(omeroImageServer.getMetadata())
+                    .channels(IntStream.range(0, channels.size())
+                            .mapToObj(i -> ImageChannel.getInstance(channels.get(i).getName(), newChannelColors.get(i)))
+                            .toList()
+                    )
+                    .build()
+            );
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private static boolean changeChannelDisplayRanges(QuPathViewer viewer, List<ChannelSettings> channelSettings) {
+        ImageDisplay display = viewer.getImageDisplay();
+        List<ChannelDisplayInfo> channels = display.availableChannels();
+
+        if (channels.size() == channelSettings.size()) {
+            for (int i=0; i<channels.size(); i++) {
+                display.setMinMaxDisplay(
+                        channels.get(i),
+                        (float) channelSettings.get(i).getMinDisplayRange(),
+                        (float) channelSettings.get(i).getMaxDisplayRange()
+                );
+            }
             return true;
         } else {
             return false;

@@ -7,6 +7,7 @@ import qupath.ext.omero.core.WebClients;
 import qupath.ext.omero.core.pixelapis.PixelAPIReader;
 import qupath.ext.omero.core.pixelapis.mspixelbuffer.MsPixelBufferAPI;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
+import qupath.ext.omero.imagesserver.OmeroImageServerBuilder;
 import qupath.lib.analysis.stats.Histogram;
 import qupath.lib.common.ColorTools;
 import qupath.lib.images.servers.ImageServerMetadata;
@@ -52,18 +53,20 @@ public class TestIceReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getRGBImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getRGBImageURI(), "--pixelAPI", "Ice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(IceAPI.class).isAvailable().get()) {
                 try {
                     reader = client.getPixelAPI(IceAPI.class).createReader(
                             OmeroServer.getRGBImage().getId(),
@@ -108,18 +111,20 @@ public class TestIceReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getUInt8ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getUInt8ImageURI(), "--pixelAPI", "Ice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(IceAPI.class).isAvailable().get()) {
                 try {
                     reader = client.getPixelAPI(IceAPI.class).createReader(
                             OmeroServer.getUInt8Image().getId(),
@@ -164,18 +169,20 @@ public class TestIceReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getUInt16ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getUInt16ImageURI(), "--pixelAPI", "Ice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(IceAPI.class).isAvailable().get()) {
                 try {
                     reader = client.getPixelAPI(IceAPI.class).createReader(
                             OmeroServer.getUInt16Image().getId(),
@@ -225,18 +232,20 @@ public class TestIceReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getInt16ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getInt16ImageURI(), "--pixelAPI", "Ice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(IceAPI.class).isAvailable().get()) {
                 try {
                     reader = client.getPixelAPI(IceAPI.class).createReader(
                             OmeroServer.getInt16Image().getId(),
@@ -286,18 +295,20 @@ public class TestIceReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getInt32ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getInt32ImageURI(), "--pixelAPI", "Ice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(IceAPI.class).isAvailable().get()) {
                 try {
                     reader = client.getPixelAPI(IceAPI.class).createReader(
                             OmeroServer.getInt32Image().getId(),
@@ -347,18 +358,20 @@ public class TestIceReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getFloat32ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getFloat32ImageURI(), "--pixelAPI", "Ice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(IceAPI.class).isAvailable().get()) {
                 try {
                     reader = client.getPixelAPI(IceAPI.class).createReader(
                             OmeroServer.getFloat32Image().getId(),
@@ -408,18 +421,20 @@ public class TestIceReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getFloat64ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getFloat64ImageURI(), "--pixelAPI", "Ice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(IceAPI.class).isAvailable().get()) {
                 try {
                     reader = client.getPixelAPI(IceAPI.class).createReader(
                             OmeroServer.getFloat64Image().getId(),

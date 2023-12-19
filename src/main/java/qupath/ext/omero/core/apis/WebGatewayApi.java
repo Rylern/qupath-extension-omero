@@ -4,6 +4,8 @@ import com.google.gson.JsonObject;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import qupath.ext.omero.core.entities.image.ChannelSettings;
 import qupath.lib.awt.common.BufferedImageTools;
 import qupath.lib.images.servers.TileRequest;
@@ -30,6 +32,8 @@ import java.util.stream.IntStream;
  */
 class WebGatewayApi {
 
+
+    private static final Logger logger = LoggerFactory.getLogger(WebGatewayApi.class);
     private static final String ICON_URL = "%s/static/webgateway/img/%s";
     private static final String PROJECT_ICON_NAME = "folder16.png";
     private static final String DATASET_ICON_NAME = "folder_image16.png";
@@ -208,15 +212,69 @@ class WebGatewayApi {
 
     /**
      * <p>
-     *     Attempt to change the channel display ranges and colors of an image.
+     *     Attempt to change the channel colors of an image.
      * </p>
      * <p>This function is asynchronous.</p>
      *
      * @param imageID  the ID of the image to change the channel settings
-     * @param channelSettings  the new channel display ranges and colors
+     * @param newChannelColors  the new channel colors, with the packed RGB format
+     * @param existingChannelSettings  the existing channel settings of the image
      * @return a CompletableFuture indicating the success of the operation
      */
-    public CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelSettings> channelSettings) {
+    public CompletableFuture<Boolean> changeChannelColors(long imageID, List<Integer> newChannelColors, List<ChannelSettings> existingChannelSettings) {
+        if (newChannelColors.size() == existingChannelSettings.size()) {
+            return changeChannelDisplayRangesAndColors(
+                    imageID,
+                    IntStream.range(0, existingChannelSettings.size())
+                            .mapToObj(i -> new ChannelSettings(
+                                    existingChannelSettings.get(i).getMinDisplayRange(),
+                                    existingChannelSettings.get(i).getMaxDisplayRange(),
+                                    String.format("%06x", newChannelColors.get(i))
+                            ))
+                            .toList()
+            );
+        } else {
+            logger.warn("The provided number of new channel colors doesn't match with the existing number of channels");
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    /**
+     * <p>
+     *     Attempt to change the channel display ranges of an image.
+     * </p>
+     * <p>This function is asynchronous.</p>
+     *
+     * @param imageID  the ID of the image to change the channel settings
+     * @param newChannelSettings  the new channel display ranges (other fields of {@link ChannelSettings}
+     *                         will be ignored)
+     * @param existingChannelSettings  the existing channel settings of the image
+     * @return a CompletableFuture indicating the success of the operation
+     */
+    public CompletableFuture<Boolean> changeChannelDisplayRanges(long imageID, List<ChannelSettings> newChannelSettings, List<ChannelSettings> existingChannelSettings) {
+        if (newChannelSettings.size() == existingChannelSettings.size()) {
+            return changeChannelDisplayRangesAndColors(
+                    imageID,
+                    IntStream.range(0, existingChannelSettings.size())
+                            .mapToObj(i -> new ChannelSettings(
+                                    newChannelSettings.get(i).getMinDisplayRange(),
+                                    newChannelSettings.get(i).getMaxDisplayRange(),
+                                    existingChannelSettings.get(i).getRgbColorHex()
+                            ))
+                            .toList()
+            );
+        } else {
+            logger.warn("The provided number of new channel settings doesn't match with the existing number of channels");
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    private synchronized void changeNumberOfThumbnailsLoading(boolean increment) {
+        int quantityToAdd = increment ? 1 : -1;
+        numberOfThumbnailsLoading.set(numberOfThumbnailsLoading.get() + quantityToAdd);
+    }
+
+    private CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelSettings> channelSettings) {
         var uri = WebUtilities.createURI(String.format(
                 CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS,
                 host,
@@ -246,10 +304,5 @@ class WebGatewayApi {
         } else {
             return CompletableFuture.completedFuture(false);
         }
-    }
-
-    private synchronized void changeNumberOfThumbnailsLoading(boolean increment) {
-        int quantityToAdd = increment ? 1 : -1;
-        numberOfThumbnailsLoading.set(numberOfThumbnailsLoading.get() + quantityToAdd);
     }
 }

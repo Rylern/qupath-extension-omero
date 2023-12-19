@@ -6,6 +6,7 @@ import qupath.ext.omero.core.WebClient;
 import qupath.ext.omero.core.WebClients;
 import qupath.ext.omero.core.pixelapis.PixelAPIReader;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
+import qupath.ext.omero.imagesserver.OmeroImageServerBuilder;
 import qupath.lib.analysis.stats.Histogram;
 import qupath.lib.common.ColorTools;
 import qupath.lib.images.servers.ImageServerMetadata;
@@ -50,7 +51,7 @@ public class TestWebReader extends OmeroServer {
 
             ImageServerMetadata metadata;
             int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getRGBImageURI())) {
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getRGBImageURI(), "--pixelAPI", "Web")) {
                 tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
                 metadata = imageServer.getMetadata();
@@ -97,7 +98,8 @@ public class TestWebReader extends OmeroServer {
 
             ImageServerMetadata metadata;
             int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getUInt8ImageURI())) {
+
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getUInt8ImageURI(), "--pixelAPI", "Web")) {
                 tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
                 metadata = imageServer.getMetadata();

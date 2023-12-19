@@ -14,5 +14,7 @@
       </Label>
       <CheckBox fx:id="imageName" mnemonicParsing="false" selected="true" text="%DataTransporters.Forms.ImageSettings.imageName" />
       <CheckBox fx:id="channelNames" mnemonicParsing="false" selected="true" text="%DataTransporters.Forms.ImageSettings.channelNames" />
+      <CheckBox fx:id="channelColors" mnemonicParsing="false" selected="true" text="%DataTransporters.Forms.ImageSettings.channelColors" />
+      <CheckBox fx:id="channelDisplayRanges" mnemonicParsing="false" selected="true" text="%DataTransporters.Forms.ImageSettings.channelDisplayRanges" />
    </children>
 </fx:root>

@@ -3,6 +3,7 @@ package qupath.ext.omero.gui.datatransporters.senders;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import qupath.ext.omero.core.entities.image.ChannelSettings;
 import qupath.ext.omero.gui.UiUtilities;
 import qupath.ext.omero.gui.datatransporters.DataTransporter;
 import qupath.ext.omero.gui.datatransporters.forms.ImageSettingsForm;
@@ -71,7 +72,8 @@ public class ImageSettingsSender implements DataTransporter {
             if (confirmed && !imageSettingsForm.getSelectedChoices().isEmpty()) {
                 Map<ImageSettingsForm.Choice, CompletableFuture<Boolean>> requests = createRequests(
                         imageSettingsForm.getSelectedChoices(),
-                        omeroImageServer
+                        omeroImageServer,
+                        viewer
                 );
 
                 CompletableFuture.supplyAsync(() -> requests.entrySet().stream().collect(Collectors.toMap(
@@ -107,7 +109,8 @@ public class ImageSettingsSender implements DataTransporter {
 
     private static Map<ImageSettingsForm.Choice, CompletableFuture<Boolean>> createRequests(
             List<ImageSettingsForm.Choice> selectedChoices,
-            OmeroImageServer omeroImageServer
+            OmeroImageServer omeroImageServer,
+            QuPathViewer viewer
     ) {
         return selectedChoices.stream()
                 .collect(Collectors.toMap(Function.identity(), choice -> switch (choice) {
@@ -118,6 +121,18 @@ public class ImageSettingsSender implements DataTransporter {
                     case CHANNEL_NAMES -> omeroImageServer.getClient().getApisHandler().changeChannelNames(
                             omeroImageServer.getId(),
                             omeroImageServer.getMetadata().getChannels().stream().map(ImageChannel::getName).toList()
+                    );
+                    case CHANNEL_COLORS -> omeroImageServer.getClient().getApisHandler().changeChannelColors(
+                            omeroImageServer.getId(),
+                            omeroImageServer.getMetadata().getChannels().stream()
+                                    .map(ImageChannel::getColor)
+                                    .toList()
+                    );
+                    case CHANNEL_DISPLAY_RANGES -> omeroImageServer.getClient().getApisHandler().changeChannelDisplayRanges(
+                            omeroImageServer.getId(),
+                            viewer.getImageDisplay().availableChannels().stream()
+                                    .map(channel -> new ChannelSettings(channel.getMinDisplay(), channel.getMaxDisplay()))
+                                    .toList()
                     );
                 }));
     }
@@ -133,6 +148,8 @@ public class ImageSettingsSender implements DataTransporter {
                         resources.getString(switch (entry.getKey()) {
                             case IMAGE_NAME -> "DataTransporters.ImageSettingsSender.imageName";
                             case CHANNEL_NAMES -> "DataTransporters.ImageSettingsSender.channelNames";
+                            case CHANNEL_COLORS -> "DataTransporters.ImageSettingsSender.channelColors";
+                            case CHANNEL_DISPLAY_RANGES -> "DataTransporters.ImageSettingsSender.channelDisplayRanges";
                         })
                 ))
                 .collect(Collectors.joining("\n"));

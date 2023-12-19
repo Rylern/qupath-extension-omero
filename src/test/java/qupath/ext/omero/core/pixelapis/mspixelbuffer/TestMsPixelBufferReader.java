@@ -6,6 +6,7 @@ import qupath.ext.omero.core.WebClient;
 import qupath.ext.omero.core.WebClients;
 import qupath.ext.omero.core.pixelapis.PixelAPIReader;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
+import qupath.ext.omero.imagesserver.OmeroImageServerBuilder;
 import qupath.lib.analysis.stats.Histogram;
 import qupath.lib.common.ColorTools;
 import qupath.lib.images.servers.ImageServerMetadata;
@@ -51,18 +52,20 @@ public class TestMsPixelBufferReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(getRGBImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getRGBImageURI(), "--pixelAPI", "Pixel Buffer Microservice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
                 reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
                         OmeroServer.getRGBImage().getId(),
                         metadata,
@@ -103,18 +106,20 @@ public class TestMsPixelBufferReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getUInt8ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getUInt8ImageURI(), "--pixelAPI", "Pixel Buffer Microservice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
                 reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
                         OmeroServer.getUInt8Image().getId(),
                         metadata,
@@ -155,18 +160,20 @@ public class TestMsPixelBufferReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getUInt16ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getUInt16ImageURI(), "--pixelAPI", "Pixel Buffer Microservice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
                 reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
                         OmeroServer.getUInt16Image().getId(),
                         metadata,
@@ -212,18 +219,20 @@ public class TestMsPixelBufferReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getInt16ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getInt16ImageURI(), "--pixelAPI", "Pixel Buffer Microservice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
                 reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
                         OmeroServer.getInt16Image().getId(),
                         metadata,
@@ -269,18 +278,20 @@ public class TestMsPixelBufferReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getInt32ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getInt32ImageURI(), "--pixelAPI", "Pixel Buffer Microservice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
                 reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
                         OmeroServer.getInt32Image().getId(),
                         metadata,
@@ -326,18 +337,20 @@ public class TestMsPixelBufferReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getFloat32ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getFloat32ImageURI(), "--pixelAPI", "Pixel Buffer Microservice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
                 reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
                         OmeroServer.getFloat32Image().getId(),
                         metadata,
@@ -383,18 +396,20 @@ public class TestMsPixelBufferReader extends OmeroServer {
         static void createClient() throws ExecutionException, InterruptedException {
             client = OmeroServer.createAuthenticatedClient();
 
-            ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getFloat64ImageURI())) {
-                tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
+            ImageServerMetadata metadata = null;
+            int nResolutions = 0;
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getFloat64ImageURI(), "--pixelAPI", "Pixel Buffer Microservice")) {
+                if (imageServer != null) {
+                    tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
-                metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
+                    metadata = imageServer.getMetadata();
+                    nResolutions = imageServer.nResolutions();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+            if (metadata != null && client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
                 reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
                         OmeroServer.getFloat64Image().getId(),
                         metadata,
