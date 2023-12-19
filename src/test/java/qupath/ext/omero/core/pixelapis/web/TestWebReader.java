@@ -46,7 +46,7 @@ public class TestWebReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
             int nResolutions;
@@ -93,7 +93,7 @@ public class TestWebReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
             int nResolutions;

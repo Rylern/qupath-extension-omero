@@ -27,7 +27,9 @@ public class TestMsPixelBufferReader extends OmeroServer {
 
         @AfterAll
         static void removeClient() throws Exception {
-            reader.close();
+            if (reader != null) {
+                reader.close();
+            }
             WebClients.removeClient(client);
         }
 
@@ -47,7 +49,7 @@ public class TestMsPixelBufferReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
             int nResolutions;
@@ -60,12 +62,16 @@ public class TestMsPixelBufferReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
-                    OmeroServer.getRGBImage().getId(),
-                    metadata,
-                    true,
-                    nResolutions
-            );
+            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+                reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
+                        OmeroServer.getRGBImage().getId(),
+                        metadata,
+                        true,
+                        nResolutions
+                );
+            } else {
+                Assumptions.abort("Aborting tests: Ms pixel buffer API not available");
+            }
         }
 
         @Test
@@ -95,7 +101,7 @@ public class TestMsPixelBufferReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
             int nResolutions;
@@ -108,12 +114,16 @@ public class TestMsPixelBufferReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
-                    OmeroServer.getUInt8Image().getId(),
-                    metadata,
-                    true,
-                    nResolutions
-            );
+            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+                reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
+                        OmeroServer.getUInt8Image().getId(),
+                        metadata,
+                        true,
+                        nResolutions
+                );
+            } else {
+                Assumptions.abort("Aborting tests: Ms pixel buffer API not available");
+            }
         }
 
         @Test
@@ -143,7 +153,7 @@ public class TestMsPixelBufferReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
             int nResolutions;
@@ -156,12 +166,16 @@ public class TestMsPixelBufferReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
-                    OmeroServer.getUInt16Image().getId(),
-                    metadata,
-                    true,
-                    nResolutions
-            );
+            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+                reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
+                        OmeroServer.getUInt16Image().getId(),
+                        metadata,
+                        true,
+                        nResolutions
+                );
+            } else {
+                Assumptions.abort("Aborting tests: Ms pixel buffer API not available");
+            }
         }
 
         @Test
@@ -196,7 +210,7 @@ public class TestMsPixelBufferReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
             int nResolutions;
@@ -209,12 +223,16 @@ public class TestMsPixelBufferReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
-                    OmeroServer.getInt16Image().getId(),
-                    metadata,
-                    true,
-                    nResolutions
-            );
+            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+                reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
+                        OmeroServer.getInt16Image().getId(),
+                        metadata,
+                        true,
+                        nResolutions
+                );
+            } else {
+                Assumptions.abort("Aborting tests: Ms pixel buffer API not available");
+            }
         }
 
         @Test
@@ -249,7 +267,7 @@ public class TestMsPixelBufferReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
             int nResolutions;
@@ -262,12 +280,16 @@ public class TestMsPixelBufferReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
-                    OmeroServer.getInt32Image().getId(),
-                    metadata,
-                    true,
-                    nResolutions
-            );
+            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+                reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
+                        OmeroServer.getInt32Image().getId(),
+                        metadata,
+                        true,
+                        nResolutions
+                );
+            } else {
+                Assumptions.abort("Aborting tests: Ms pixel buffer API not available");
+            }
         }
 
         @Test
@@ -302,7 +324,7 @@ public class TestMsPixelBufferReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
             int nResolutions;
@@ -315,12 +337,16 @@ public class TestMsPixelBufferReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
-                    OmeroServer.getFloat32Image().getId(),
-                    metadata,
-                    true,
-                    nResolutions
-            );
+            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+                reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
+                        OmeroServer.getFloat32Image().getId(),
+                        metadata,
+                        true,
+                        nResolutions
+                );
+            } else {
+                Assumptions.abort("Aborting tests: Ms pixel buffer API not available");
+            }
         }
 
         @Test
@@ -355,7 +381,7 @@ public class TestMsPixelBufferReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
             int nResolutions;
@@ -368,12 +394,16 @@ public class TestMsPixelBufferReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
-                    OmeroServer.getFloat64Image().getId(),
-                    metadata,
-                    true,
-                    nResolutions
-            );
+            if (client.getPixelAPI(MsPixelBufferAPI.class).isAvailable().get()) {
+                reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
+                        OmeroServer.getFloat64Image().getId(),
+                        metadata,
+                        true,
+                        nResolutions
+                );
+            } else {
+                Assumptions.abort("Aborting tests: Ms pixel buffer API not available");
+            }
         }
 
         @Test

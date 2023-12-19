@@ -5,6 +5,7 @@ import qupath.ext.omero.OmeroServer;
 import qupath.ext.omero.core.WebClient;
 import qupath.ext.omero.core.WebClients;
 import qupath.ext.omero.core.pixelapis.PixelAPIReader;
+import qupath.ext.omero.core.pixelapis.mspixelbuffer.MsPixelBufferAPI;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
 import qupath.lib.analysis.stats.Histogram;
 import qupath.lib.common.ColorTools;
@@ -62,15 +63,19 @@ public class TestIceReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            try {
-                reader = client.getPixelAPI(IceAPI.class).createReader(
-                        OmeroServer.getRGBImage().getId(),
-                        metadata,
-                        true,
-                        nResolutions
-                );
-            } catch (IOException e) {
-                Assumptions.abort("Aborting test: ICE not available");
+            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+                try {
+                    reader = client.getPixelAPI(IceAPI.class).createReader(
+                            OmeroServer.getRGBImage().getId(),
+                            metadata,
+                            true,
+                            nResolutions
+                    );
+                } catch (IOException e) {
+                    Assumptions.abort("Aborting test: ICE API not available");
+                }
+            } else {
+                Assumptions.abort("Aborting tests: ICE API not available");
             }
         }
 
@@ -114,15 +119,19 @@ public class TestIceReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            try {
-                reader = client.getPixelAPI(IceAPI.class).createReader(
-                        OmeroServer.getUInt8Image().getId(),
-                        metadata,
-                        true,
-                        nResolutions
-                );
-            } catch (IOException e) {
-                Assumptions.abort("Aborting test: ICE not available");
+            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+                try {
+                    reader = client.getPixelAPI(IceAPI.class).createReader(
+                            OmeroServer.getUInt8Image().getId(),
+                            metadata,
+                            true,
+                            nResolutions
+                    );
+                } catch (IOException e) {
+                    Assumptions.abort("Aborting test: ICE API not available");
+                }
+            } else {
+                Assumptions.abort("Aborting tests: ICE API not available");
             }
         }
 
@@ -166,15 +175,19 @@ public class TestIceReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            try {
-                reader = client.getPixelAPI(IceAPI.class).createReader(
-                        OmeroServer.getUInt16Image().getId(),
-                        metadata,
-                        true,
-                        nResolutions
-                );
-            } catch (IOException e) {
-                Assumptions.abort("Aborting test: ICE not available");
+            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+                try {
+                    reader = client.getPixelAPI(IceAPI.class).createReader(
+                            OmeroServer.getUInt16Image().getId(),
+                            metadata,
+                            true,
+                            nResolutions
+                    );
+                } catch (IOException e) {
+                    Assumptions.abort("Aborting test: ICE API not available");
+                }
+            } else {
+                Assumptions.abort("Aborting tests: ICE API not available");
             }
         }
 
@@ -223,15 +236,19 @@ public class TestIceReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            try {
-                reader = client.getPixelAPI(IceAPI.class).createReader(
-                        OmeroServer.getInt16Image().getId(),
-                        metadata,
-                        true,
-                        nResolutions
-                );
-            } catch (IOException e) {
-                Assumptions.abort("Aborting test: ICE not available");
+            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+                try {
+                    reader = client.getPixelAPI(IceAPI.class).createReader(
+                            OmeroServer.getInt16Image().getId(),
+                            metadata,
+                            true,
+                            nResolutions
+                    );
+                } catch (IOException e) {
+                    Assumptions.abort("Aborting test: ICE API not available");
+                }
+            } else {
+                Assumptions.abort("Aborting tests: ICE API not available");
             }
         }
 
@@ -280,15 +297,19 @@ public class TestIceReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            try {
-                reader = client.getPixelAPI(IceAPI.class).createReader(
-                        OmeroServer.getInt32Image().getId(),
-                        metadata,
-                        true,
-                        nResolutions
-                );
-            } catch (IOException e) {
-                Assumptions.abort("Aborting test: ICE not available");
+            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+                try {
+                    reader = client.getPixelAPI(IceAPI.class).createReader(
+                            OmeroServer.getInt32Image().getId(),
+                            metadata,
+                            true,
+                            nResolutions
+                    );
+                } catch (IOException e) {
+                    Assumptions.abort("Aborting test: ICE API not available");
+                }
+            } else {
+                Assumptions.abort("Aborting tests: ICE API not available");
             }
         }
 
@@ -337,15 +358,19 @@ public class TestIceReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            try {
-                reader = client.getPixelAPI(IceAPI.class).createReader(
-                        OmeroServer.getFloat32Image().getId(),
-                        metadata,
-                        true,
-                        nResolutions
-                );
-            } catch (IOException e) {
-                Assumptions.abort("Aborting test: ICE not available");
+            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+                try {
+                    reader = client.getPixelAPI(IceAPI.class).createReader(
+                            OmeroServer.getFloat32Image().getId(),
+                            metadata,
+                            true,
+                            nResolutions
+                    );
+                } catch (IOException e) {
+                    Assumptions.abort("Aborting test: ICE API not available");
+                }
+            } else {
+                Assumptions.abort("Aborting tests: ICE API not available");
             }
         }
 
@@ -394,15 +419,19 @@ public class TestIceReader extends OmeroServer {
                 throw new RuntimeException(e);
             }
 
-            try {
-                reader = client.getPixelAPI(IceAPI.class).createReader(
-                        OmeroServer.getFloat64Image().getId(),
-                        metadata,
-                        true,
-                        nResolutions
-                );
-            } catch (IOException e) {
-                Assumptions.abort("Aborting test: ICE not available");
+            if (client.getPixelAPI(IceAPI.class).isAvailable().get()) {
+                try {
+                    reader = client.getPixelAPI(IceAPI.class).createReader(
+                            OmeroServer.getFloat64Image().getId(),
+                            metadata,
+                            true,
+                            nResolutions
+                    );
+                } catch (IOException e) {
+                    Assumptions.abort("Aborting test: ICE API not available");
+                }
+            } else {
+                Assumptions.abort("Aborting tests: ICE API not available");
             }
         }
 

@@ -5,13 +5,9 @@ import qupath.ext.omero.TestUtilities;
 import qupath.ext.omero.OmeroServer;
 import qupath.ext.omero.core.WebClient;
 import qupath.ext.omero.core.WebClients;
-import qupath.ext.omero.core.entities.repositoryentities.OrphanedFolder;
 import qupath.ext.omero.core.entities.repositoryentities.RepositoryEntity;
-import qupath.ext.omero.core.entities.repositoryentities.serverentities.Dataset;
-import qupath.ext.omero.core.entities.repositoryentities.serverentities.Project;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -50,12 +46,6 @@ public class TestImage extends OmeroServer {
 
         @Test
         abstract void Check_Attributes();
-
-        @Test
-        abstract void Check_Supported();
-
-        @Test
-        abstract void Check_Unsupported_Reasons();
     }
 
     @Nested
@@ -84,24 +74,6 @@ public class TestImage extends OmeroServer {
 
             Assertions.assertArrayEquals(expectedAttributeValues, attributesValues);
         }
-
-        @Test
-        @Override
-        void Check_Supported() {
-            boolean isSupported = image.isSupported().get();
-
-            Assertions.assertTrue(isSupported);
-        }
-
-        @Test
-        @Override
-        void Check_Unsupported_Reasons() {
-            Set<Image.UnsupportedReason> expectedReasons = Set.of();
-
-            Set<Image.UnsupportedReason> reasons = image.getUnsupportedReasons();
-
-            TestUtilities.assertCollectionsEqualsWithoutOrder(expectedReasons, reasons);
-        }
     }
 
     @Nested
@@ -129,24 +101,6 @@ public class TestImage extends OmeroServer {
             }
 
             Assertions.assertArrayEquals(expectedAttributeValues, attributesValues);
-        }
-
-        @Test
-        @Override
-        void Check_Supported() {
-            boolean isSupported = image.isSupported().get();
-
-            Assertions.assertTrue(isSupported);
-        }
-
-        @Test
-        @Override
-        void Check_Unsupported_Reasons() {
-            Set<Image.UnsupportedReason> expectedReasons = Set.of();
-
-            Set<Image.UnsupportedReason> reasons = image.getUnsupportedReasons();
-
-            TestUtilities.assertCollectionsEqualsWithoutOrder(expectedReasons, reasons);
         }
     }
 }

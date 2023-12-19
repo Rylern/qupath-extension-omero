@@ -980,7 +980,7 @@ public class TestApisHandler extends OmeroServer {
                     "C", "D"
             );
 
-            apisHandler.sendKeyValuePairs(image.getId(), keyValuesToSend, false, true).get();
+            apisHandler.sendKeyValuePairs(image.getId(), keyValuesToSend, false, false).get();
 
             Map<String, String> keyValues = apisHandler.getAnnotations(image.getId(), Image.class).get()
                     .map(annotationGroup -> annotationGroup.getAnnotationsOfClass(MapAnnotation.class))
@@ -1080,7 +1080,7 @@ public class TestApisHandler extends OmeroServer {
             Assertions.assertTrue(status);
 
             // Reset channel display ranges and colors
-            apisHandler.changeChannelDisplayRangesAndColors(image.getId(), OmeroServer.getFloat32ChannelSettings());
+            apisHandler.changeChannelDisplayRangesAndColors(image.getId(), OmeroServer.getFloat32ChannelSettings()).get();
         }
 
         @Test
@@ -1088,9 +1088,9 @@ public class TestApisHandler extends OmeroServer {
         void Check_Channel_Display_Ranges_And_Colors_Changed() throws ExecutionException, InterruptedException {
             Image image = OmeroServer.getFloat32Image();
             List<ChannelSettings> expectedChannelSettings = List.of(
-                    new ChannelSettings(0.45, 100.654, "00FFFF"),
-                    new ChannelSettings(50, 200, "FF00FF"),
-                    new ChannelSettings(75.64, 80.9807, "FFFF00")
+                    new ChannelSettings(OmeroServer.getFloat32ChannelSettings().get(0).getName(), 0.45, 100.654, "00FFFF"),
+                    new ChannelSettings(OmeroServer.getFloat32ChannelSettings().get(1).getName(), 50, 200, "FF00FF"),
+                    new ChannelSettings(OmeroServer.getFloat32ChannelSettings().get(2).getName(), 75.64, 80.9807, "FFFF00")
             );
 
             apisHandler.changeChannelDisplayRangesAndColors(image.getId(), expectedChannelSettings).get();
@@ -1099,7 +1099,7 @@ public class TestApisHandler extends OmeroServer {
             TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelSettings, channelSettings);
 
             // Reset channel display ranges and colors
-            apisHandler.changeChannelDisplayRangesAndColors(image.getId(), OmeroServer.getFloat32ChannelSettings());
+            apisHandler.changeChannelDisplayRangesAndColors(image.getId(), OmeroServer.getFloat32ChannelSettings()).get();
         }
 
         @Test
