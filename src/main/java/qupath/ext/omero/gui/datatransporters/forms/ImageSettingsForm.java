@@ -38,9 +38,13 @@ public class ImageSettingsForm extends VBox {
     /**
      * Creates the image settings form.
      *
+     * @param noCurrentProject  whether there is no QuPath project currently opened. This is
+     *                          needed to determine if the image name can be changed
+     * @param isRGB  whether the current image uses the RGB format. This is needed to determine if the channel
+     *               settings can be changed
      * @throws IOException if an error occurs while creating the form
      */
-    public ImageSettingsForm() throws IOException {
+    public ImageSettingsForm(boolean noCurrentProject, boolean isRGB) throws IOException {
         UiUtilities.loadFXML(this, ImageSettingsForm.class.getResource("image_settings_form.fxml"));
 
         checkBoxChoiceMap = Map.of(
@@ -49,6 +53,22 @@ public class ImageSettingsForm extends VBox {
                 channelColors, Choice.CHANNEL_COLORS,
                 channelDisplayRanges, Choice.CHANNEL_DISPLAY_RANGES
         );
+
+        if (noCurrentProject) {
+            imageName.setSelected(false);
+            imageName.setDisable(true);
+        }
+
+        if (isRGB) {
+            channelNames.setSelected(false);
+            channelNames.setDisable(true);
+
+            channelColors.setSelected(false);
+            channelColors.setDisable(true);
+
+            channelDisplayRanges.setSelected(false);
+            channelDisplayRanges.setDisable(true);
+        }
     }
 
     /**

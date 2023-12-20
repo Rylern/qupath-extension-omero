@@ -51,7 +51,11 @@ public class TestWebReader extends OmeroServer {
 
             ImageServerMetadata metadata;
             int nResolutions;
-            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getRGBImageURI(), "--pixelAPI", "Web")) {
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(
+                    OmeroServer.getRGBImageURI(),
+                    "--pixelAPI", "Web",
+                    "--jpegQuality", "1.0")
+            ) {
                 tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
                 metadata = imageServer.getMetadata();
@@ -71,8 +75,8 @@ public class TestWebReader extends OmeroServer {
         @Test
         @Override
         void Check_Image_Histogram() throws IOException {
-            double expectedMean = OmeroServer.getUInt8ImageRedChannelMean();
-            double expectedStdDev = OmeroServer.getUInt8ImageRedChannelStdDev();
+            double expectedMean = OmeroServer.getRGBImageRedChannelMean();
+            double expectedStdDev = OmeroServer.getRGBImageRedChannelStdDev();
 
             BufferedImage image = reader.readTile(tileRequest);
 
@@ -84,8 +88,8 @@ public class TestWebReader extends OmeroServer {
                     Double.NaN,
                     Double.NaN
             );
-            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 10);
-            Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 12);
+            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 0.1);
+            Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 0.1);
         }
     }
 
@@ -98,8 +102,11 @@ public class TestWebReader extends OmeroServer {
 
             ImageServerMetadata metadata;
             int nResolutions;
-
-            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(OmeroServer.getUInt8ImageURI(), "--pixelAPI", "Web")) {
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(
+                    OmeroServer.getUInt8ImageURI(),
+                    "--pixelAPI", "Web",
+                    "--jpegQuality", "1.0")
+            ) {
                 tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
                 metadata = imageServer.getMetadata();
@@ -133,7 +140,7 @@ public class TestWebReader extends OmeroServer {
                     Double.NaN
             );
 
-            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 5);
+            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 3);
             Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 11);
         }
     }

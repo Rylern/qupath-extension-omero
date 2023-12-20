@@ -466,30 +466,16 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebGatewayApi#readSingleResolutionTile(long, TileRequest, int, int, double, boolean)}.
+     * See {@link WebGatewayApi#readTile(long, TileRequest, int, int, double)}.
      */
-    public CompletableFuture<Optional<BufferedImage>> readSingleResolutionTile(
-            long id,
-            TileRequest tileRequest,
-            int preferredTileWidth,
-            int preferredTileHeight,
-            double quality,
-            boolean allowSmoothInterpolation
-    ) {
-        return webGatewayApi.readSingleResolutionTile(id, tileRequest, preferredTileWidth, preferredTileHeight, quality, allowSmoothInterpolation);
-    }
-
-    /**
-     * See {@link WebGatewayApi#readMultiResolutionTile(long, TileRequest, int, int, double)}.
-     */
-    public CompletableFuture<Optional<BufferedImage>> readMultiResolutionTile(
+    public CompletableFuture<Optional<BufferedImage>> readTile(
             long id,
             TileRequest tileRequest,
             int preferredTileWidth,
             int preferredTileHeight,
             double quality
     ) {
-        return webGatewayApi.readMultiResolutionTile(id, tileRequest, preferredTileWidth, preferredTileHeight, quality);
+        return webGatewayApi.readTile(id, tileRequest, preferredTileWidth, preferredTileHeight, quality);
     }
 
     /**

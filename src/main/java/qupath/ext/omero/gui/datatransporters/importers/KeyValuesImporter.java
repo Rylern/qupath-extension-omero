@@ -40,8 +40,8 @@ public class KeyValuesImporter implements DataTransporter {
     }
 
     @Override
-    public boolean requireProject() {
-        return true;
+    public boolean canTransportData(boolean projectOpened, boolean isRGB) {
+        return projectOpened;
     }
 
     @Override

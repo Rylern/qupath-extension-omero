@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import qupath.ext.omero.core.entities.image.ChannelSettings;
-import qupath.lib.awt.common.BufferedImageTools;
+import qupath.lib.common.ColorTools;
 import qupath.lib.images.servers.TileRequest;
 import qupath.ext.omero.core.entities.imagemetadata.ImageMetadataResponse;
 import qupath.ext.omero.core.WebUtilities;
@@ -40,11 +40,6 @@ class WebGatewayApi {
     private static final String ORPHANED_FOLDER_ICON_NAME = "folder_yellow16.png";
     private static final String THUMBNAIL_URL = "%s/webgateway/render_thumbnail/%d/%d";
     private static final String IMAGE_DATA_URL = "%s/webgateway/imgData/%d";
-    private static final String SINGLE_RESOLUTION_TILE_URL = "%s/webgateway/render_image_region/%d/%d/%d" +
-            "/?region=%d,%d,%d,%d" +
-            "&%s" +
-            "&%s" +
-            "&m=c&p=normal&q=%f";
     private static final String MULTI_RESOLUTION_TILE_URL = "%s/webgateway/render_image_region/%d/%d/%d" +
             "/?tile=%d,%d,%d,%d,%d" +
             "&%s" +
@@ -160,36 +155,8 @@ class WebGatewayApi {
         }
     }
 
-    //TODO: check the two read tile functions when changing channel settings
     /**
-     * <p>Attempt to read a tile (portion of image) from a single resolution image.</p>
-     * <p>This function is asynchronous.</p>
-     *
-     * @param id  the OMERO image ID
-     * @param tileRequest  the tile request (usually coming from the {@link qupath.lib.images.servers.AbstractTileableImageServer AbstractTileableImageServer})
-     * @param preferredTileWidth  the preferred tile width in pixels
-     * @param preferredTileHeight  the preferred tile height in pixels
-     * @param quality  the JPEG quality, from 0 to 1
-     * @param allowSmoothInterpolation  whether to use smooth interpolation when resizing
-     * @return a CompletableFuture with the tile, or an empty Optional if an error occurred
-     */
-    public CompletableFuture<Optional<BufferedImage>> readSingleResolutionTile(long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality, boolean allowSmoothInterpolation) {
-        return ApiUtilities.getImage(String.format(SINGLE_RESOLUTION_TILE_URL,
-                        host, id, tileRequest.getZ(), tileRequest.getT(),
-                        tileRequest.getTileX(), tileRequest.getTileY(), preferredTileWidth, preferredTileHeight,
-                        TILE_FIRST_PARAMETER,
-                        TILE_SECOND_PARAMETER,
-                        quality
-                )
-        )
-                .thenApply(bufferedImage ->
-                        bufferedImage.map(image -> BufferedImageTools.resize(image, tileRequest.getTileWidth(), tileRequest.getTileHeight(), allowSmoothInterpolation))
-                );
-    }
-
-
-    /**
-     * <p>Attempt to read a tile (portion of image) from a multi resolution image.</p>
+     * <p>Attempt to read a tile (portion of image).</p>
      * <p>This function is asynchronous.</p>
      *
      * @param id  the OMERO image ID
@@ -199,7 +166,7 @@ class WebGatewayApi {
      * @param quality  the JPEG quality, from 0 to 1
      * @return a CompletableFuture with the tile, or an empty Optional if an error occurred
      */
-    public CompletableFuture<Optional<BufferedImage>> readMultiResolutionTile(long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality) {
+    public CompletableFuture<Optional<BufferedImage>> readTile(long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality) {
         return ApiUtilities.getImage(String.format(MULTI_RESOLUTION_TILE_URL,
                 host, id, tileRequest.getZ(), tileRequest.getT(),
                 tileRequest.getLevel(), tileRequest.getTileX() / preferredTileWidth, tileRequest.getTileY() / preferredTileHeight,
@@ -229,7 +196,12 @@ class WebGatewayApi {
                             .mapToObj(i -> new ChannelSettings(
                                     existingChannelSettings.get(i).getMinDisplayRange(),
                                     existingChannelSettings.get(i).getMaxDisplayRange(),
-                                    String.format("%06x", newChannelColors.get(i))
+                                    String.format(
+                                            "%02X%02X%02X",
+                                            ColorTools.unpackRGB(newChannelColors.get(i))[0],
+                                            ColorTools.unpackRGB(newChannelColors.get(i))[1],
+                                            ColorTools.unpackRGB(newChannelColors.get(i))[2]
+                                    )
                             ))
                             .toList()
             );

@@ -112,8 +112,6 @@ public class WebAPI implements PixelAPI {
         return new WebReader(
                 client.getApisHandler(),
                 id,
-                allowSmoothInterpolation,
-                nResolutions,
                 metadata.getPreferredTileWidth(),
                 metadata.getPreferredTileHeight(),
                 jpegQuality.get()

@@ -43,18 +43,22 @@ public class ImageSettingsSender implements DataTransporter {
     }
 
     @Override
-    public boolean requireProject() {
-        return false;
+    public boolean canTransportData(boolean projectOpened, boolean isRGB) {
+        return projectOpened | !isRGB;
     }
 
     @Override
     public void transportData() {
-        QuPathViewer viewer = QuPathGUI.getInstance().getViewer();
+        QuPathGUI quPathGUI = QuPathGUI.getInstance();
+        QuPathViewer viewer = quPathGUI.getViewer();
 
         if (viewer != null && viewer.getServer() instanceof OmeroImageServer omeroImageServer) {
             ImageSettingsForm imageSettingsForm;
             try {
-                imageSettingsForm = new ImageSettingsForm();
+                imageSettingsForm = new ImageSettingsForm(
+                        quPathGUI.getProject() == null,
+                        omeroImageServer.getMetadata().isRGB()
+                );
             } catch (IOException e) {
                 logger.error("Error when creating the image settings form", e);
                 Dialogs.showErrorMessage(
