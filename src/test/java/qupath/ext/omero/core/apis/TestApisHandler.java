@@ -1107,8 +1107,7 @@ public class TestApisHandler extends OmeroServer {
 
             // Reset channel colors
             apisHandler.changeChannelColors(image.getId(), OmeroServer.getFloat32ChannelSettings().stream()
-                    .map(ChannelSettings::getRgbColorHex)
-                    .map(hex -> Integer.parseInt(hex, 16))
+                    .map(ChannelSettings::getRgbColor)
                     .toList()
             ).get();
         }
@@ -1128,15 +1127,13 @@ public class TestApisHandler extends OmeroServer {
             List<Integer> channelColors = Objects.requireNonNull(apisHandler.getImageSettings(image.getId()).get().orElse(null))
                     .getChannelSettings()
                     .stream()
-                    .map(ChannelSettings::getRgbColorHex)
-                    .map(hex -> Integer.parseInt(hex, 16))
+                    .map(ChannelSettings::getRgbColor)
                     .toList();
             TestUtilities.assertCollectionsEqualsWithoutOrder(expectedChannelColors, channelColors);
 
             // Reset channel colors
             apisHandler.changeChannelColors(image.getId(), OmeroServer.getFloat32ChannelSettings().stream()
-                    .map(ChannelSettings::getRgbColorHex)
-                    .map(hex -> Integer.parseInt(hex, 16))
+                    .map(ChannelSettings::getRgbColor)
                     .toList()
             ).get();
         }
@@ -1168,19 +1165,19 @@ public class TestApisHandler extends OmeroServer {
                             OmeroServer.getFloat32ChannelSettings().get(0).getName(),
                             0.45,
                             100.654,
-                            OmeroServer.getFloat32ChannelSettings().get(0).getRgbColorHex()
+                            OmeroServer.getFloat32ChannelSettings().get(0).getRgbColor()
                     ),
                     new ChannelSettings(
                             OmeroServer.getFloat32ChannelSettings().get(1).getName(),
                             50,
                             200,
-                            OmeroServer.getFloat32ChannelSettings().get(1).getRgbColorHex()
+                            OmeroServer.getFloat32ChannelSettings().get(1).getRgbColor()
                     ),
                     new ChannelSettings(
                             OmeroServer.getFloat32ChannelSettings().get(2).getName(),
                             75.64,
                             80.9807,
-                            OmeroServer.getFloat32ChannelSettings().get(2).getRgbColorHex()
+                            OmeroServer.getFloat32ChannelSettings().get(2).getRgbColor()
                     )
             );
 

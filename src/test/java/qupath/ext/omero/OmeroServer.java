@@ -552,9 +552,9 @@ public abstract class OmeroServer {
 
     protected static List<ChannelSettings> getFloat32ChannelSettings() {
         return List.of(
-                new ChannelSettings("0", 0, 211, "FF0000"),
-                new ChannelSettings("1", 0, 248, "00FF00"),
-                new ChannelSettings("2", 0, 184, "0000FF")
+                new ChannelSettings("0", 0, 211, Integer.parseInt("FF0000", 16)),
+                new ChannelSettings("1", 0, 248, Integer.parseInt("00FF00", 16)),
+                new ChannelSettings("2", 0, 184, Integer.parseInt("0000FF", 16))
         );
     }
 

@@ -32,7 +32,6 @@ import java.util.stream.IntStream;
  */
 class WebGatewayApi {
 
-
     private static final Logger logger = LoggerFactory.getLogger(WebGatewayApi.class);
     private static final String ICON_URL = "%s/static/webgateway/img/%s";
     private static final String PROJECT_ICON_NAME = "folder16.png";
@@ -196,12 +195,7 @@ class WebGatewayApi {
                             .mapToObj(i -> new ChannelSettings(
                                     existingChannelSettings.get(i).getMinDisplayRange(),
                                     existingChannelSettings.get(i).getMaxDisplayRange(),
-                                    String.format(
-                                            "%02X%02X%02X",
-                                            ColorTools.unpackRGB(newChannelColors.get(i))[0],
-                                            ColorTools.unpackRGB(newChannelColors.get(i))[1],
-                                            ColorTools.unpackRGB(newChannelColors.get(i))[2]
-                                    )
+                                    newChannelColors.get(i)
                             ))
                             .toList()
             );
@@ -231,7 +225,7 @@ class WebGatewayApi {
                             .mapToObj(i -> new ChannelSettings(
                                     newChannelSettings.get(i).getMinDisplayRange(),
                                     newChannelSettings.get(i).getMaxDisplayRange(),
-                                    existingChannelSettings.get(i).getRgbColorHex()
+                                    existingChannelSettings.get(i).getRgbColor()
                             ))
                             .toList()
             );
@@ -259,12 +253,19 @@ class WebGatewayApi {
                                         i + 1,
                                         channelSettings.get(i).getMinDisplayRange(),
                                         channelSettings.get(i).getMaxDisplayRange(),
-                                        channelSettings.get(i).getRgbColorHex()
+                                        String.format(
+                                                "%02X%02X%02X",
+                                                ColorTools.unpackRGB(channelSettings.get(i).getRgbColor())[0],
+                                                ColorTools.unpackRGB(channelSettings.get(i).getRgbColor())[1],
+                                                ColorTools.unpackRGB(channelSettings.get(i).getRgbColor())[2]
+                                        )
                                 ))
                                 .collect(Collectors.joining(",")),
                         StandardCharsets.UTF_8
                 )
         ));
+
+
 
         if (uri.isPresent()) {
             return RequestSender.post(

@@ -50,7 +50,6 @@ public class TestWebReader extends OmeroServer {
             client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
-            int nResolutions;
             try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(
                     OmeroServer.getRGBImageURI(),
                     "--pixelAPI", "Web",
@@ -59,16 +58,13 @@ public class TestWebReader extends OmeroServer {
                 tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
                 metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
             reader = client.getPixelAPI(WebAPI.class).createReader(
                     OmeroServer.getRGBImage().getId(),
-                    metadata,
-                    true,
-                    nResolutions
+                    metadata
             );
         }
 
@@ -88,6 +84,7 @@ public class TestWebReader extends OmeroServer {
                     Double.NaN,
                     Double.NaN
             );
+
             Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 0.1);
             Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 0.1);
         }
@@ -101,7 +98,6 @@ public class TestWebReader extends OmeroServer {
             client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
-            int nResolutions;
             try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(
                     OmeroServer.getUInt8ImageURI(),
                     "--pixelAPI", "Web",
@@ -110,16 +106,13 @@ public class TestWebReader extends OmeroServer {
                 tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
                 metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
             reader = client.getPixelAPI(WebAPI.class).createReader(
                     OmeroServer.getUInt8Image().getId(),
-                    metadata,
-                    true,
-                    nResolutions
+                    metadata
             );
         }
 

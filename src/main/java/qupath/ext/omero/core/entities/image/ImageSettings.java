@@ -1,6 +1,8 @@
 package qupath.ext.omero.core.entities.image;
 
 import com.google.gson.annotations.SerializedName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -10,6 +12,7 @@ import java.util.Objects;
  */
 public class ImageSettings {
 
+    private static final Logger logger = LoggerFactory.getLogger(ImageSettings.class);
     private transient String name;
     private transient List<ChannelSettings> channelSettings;
     @SerializedName(value = "meta") private Meta meta;
@@ -65,12 +68,21 @@ public class ImageSettings {
                 channelSettings = List.of();
             } else {
                 channelSettings = channels.stream()
-                        .map(channel -> new ChannelSettings(
-                                channel.name == null ? "" : channel.name,
-                                channel.window == null ? 0 : channel.window.start,
-                                channel.window == null ? 0 : channel.window.end,
-                                channel.color == null ? "" : channel.color
-                        ))
+                        .map(channel -> {
+                            int channelColor = 0;
+                            try {
+                                channelColor = Integer.parseInt(channel.color, 16);
+                            } catch (NumberFormatException e) {
+                                logger.warn(String.format("Could not convert channel color %s to Integer", channel.color), e);
+                            }
+
+                            return new ChannelSettings(
+                                    channel.name == null ? "" : channel.name,
+                                    channel.window == null ? 0 : channel.window.start,
+                                    channel.window == null ? 0 : channel.window.end,
+                                    channel.color == null ? 0 : channelColor
+                            );
+                        })
                         .toList();
             }
         }

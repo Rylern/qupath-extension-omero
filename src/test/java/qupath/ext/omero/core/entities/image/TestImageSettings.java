@@ -22,8 +22,8 @@ public class TestImageSettings {
     @Test
     void Check_Channel_Settings_From_Constructor() {
         List<ChannelSettings> expectedChannelSettings = List.of(
-                new ChannelSettings("Channel 1", 5.345, 23.87, "00FF00"),
-                new ChannelSettings("Channel 2", 90, 180, "0000FF")
+                new ChannelSettings("Channel 1", 5.345, 23.87, Integer.parseInt("00FF00", 16)),
+                new ChannelSettings("Channel 2", 90, 180, Integer.parseInt("0000FF", 16))
         );
         ImageSettings imageSettings = new ImageSettings("", expectedChannelSettings);
 
@@ -45,8 +45,8 @@ public class TestImageSettings {
     void Check_Channel_Settings_From_JSON() {
         ImageSettings imageSettings = createFromJson();
         List<ChannelSettings> expectedChannelSettings = List.of(
-                new ChannelSettings("Channel 1", 5.345, 23.87, "00FF00"),
-                new ChannelSettings("Channel 2", 90, 180, "0000FF")
+                new ChannelSettings("Channel 1", 5.345, 23.87, Integer.parseInt("00FF00", 16)),
+                new ChannelSettings("Channel 2", 90, 180, Integer.parseInt("0000FF", 16))
         );
 
         List<ChannelSettings> channelSettings = imageSettings.getChannelSettings();

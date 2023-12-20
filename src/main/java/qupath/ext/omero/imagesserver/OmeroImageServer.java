@@ -71,9 +71,7 @@ public class OmeroImageServer extends AbstractTileableImageServer implements Pat
                 try {
                     omeroImageServer.pixelAPIReader = pixelAPI.createReader(
                             omeroImageServer.id,
-                            omeroImageServer.getMetadata(),
-                            omeroImageServer.allowSmoothInterpolation(),
-                            omeroImageServer.nResolutions()
+                            omeroImageServer.getMetadata()
                     );
                 } catch (IOException e) {
                     logger.error("Couldn't create pixel API reader", e);

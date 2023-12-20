@@ -82,8 +82,6 @@ public interface PixelAPI {
      *
      * @param id  the ID of the image to open
      * @param metadata  the metadata of the image to open
-     * @param allowSmoothInterpolation  whether to use smooth interpolation when resizing the image to open
-     * @param nResolutions  the number of resolutions of the image to open
      * @return a new reader corresponding to this API
      * @throws IOException when the reader creation fails
      * @throws IllegalStateException when this API is not available (see {@link #isAvailable()})
@@ -92,8 +90,6 @@ public interface PixelAPI {
      */
     PixelAPIReader createReader(
             long id,
-            ImageServerMetadata metadata,
-            boolean allowSmoothInterpolation,
-            int nResolutions
+            ImageServerMetadata metadata
     ) throws IOException;
 }

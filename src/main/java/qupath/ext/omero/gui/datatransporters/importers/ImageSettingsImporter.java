@@ -21,7 +21,6 @@ import qupath.lib.projects.Project;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.stream.IntStream;
 
@@ -190,16 +189,7 @@ public class ImageSettingsImporter implements DataTransporter {
     private static boolean changeChannelColors(OmeroImageServer omeroImageServer, QuPathViewer viewer, List<ChannelSettings> channelSettings) {
         List<ImageChannel> channels = omeroImageServer.getMetadata().getChannels();
         List<Integer> newChannelColors = channelSettings.stream()
-                .map(ChannelSettings::getRgbColorHex)
-                .map(hex -> {
-                    try {
-                        return Integer.parseInt(hex, 16);
-                    } catch (NumberFormatException e) {
-                        logger.warn(String.format("Could not convert channel color %s to Integer", hex), e);
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
+                .map(ChannelSettings::getRgbColor)
                 .toList();
 
         if (channels.size() == newChannelColors.size()) {

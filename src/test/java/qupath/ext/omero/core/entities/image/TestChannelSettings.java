@@ -8,7 +8,7 @@ public class TestChannelSettings {
     @Test
     void Check_Name() {
         String expectedName = "";
-        ChannelSettings channelSettings = new ChannelSettings(expectedName, 0, 0, "");
+        ChannelSettings channelSettings = new ChannelSettings(expectedName);
 
         String name = channelSettings.getName();
 
@@ -18,7 +18,7 @@ public class TestChannelSettings {
     @Test
     void Check_Min_Display_Range() {
         double expectedMinDisplayRange = 65.43;
-        ChannelSettings channelSettings = new ChannelSettings("", expectedMinDisplayRange, 0, "");
+        ChannelSettings channelSettings = new ChannelSettings(expectedMinDisplayRange, 0);
 
         double minDisplayRang = channelSettings.getMinDisplayRange();
 
@@ -28,7 +28,7 @@ public class TestChannelSettings {
     @Test
     void Check_Max_Display_Range() {
         double expectedMaxDisplayRange = 98.34234;
-        ChannelSettings channelSettings = new ChannelSettings("", 0, expectedMaxDisplayRange, "");
+        ChannelSettings channelSettings = new ChannelSettings(0, expectedMaxDisplayRange);
 
         double maxDisplayRang = channelSettings.getMaxDisplayRange();
 
@@ -37,10 +37,10 @@ public class TestChannelSettings {
 
     @Test
     void Check_RGB_Color() {
-        String expectedColor = "0FBF0F";
-        ChannelSettings channelSettings = new ChannelSettings("", 0, 0, expectedColor);
+        int expectedColor = Integer.parseInt("0FBF0F", 16);
+        ChannelSettings channelSettings = new ChannelSettings(0, 0, expectedColor);
 
-        String color = channelSettings.getRgbColorHex();
+        int color = channelSettings.getRgbColor();
 
         Assertions.assertEquals(expectedColor, color);
     }
