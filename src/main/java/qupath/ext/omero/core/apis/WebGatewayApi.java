@@ -39,15 +39,12 @@ class WebGatewayApi {
     private static final String ORPHANED_FOLDER_ICON_NAME = "folder_yellow16.png";
     private static final String THUMBNAIL_URL = "%s/webgateway/render_thumbnail/%d/%d";
     private static final String IMAGE_DATA_URL = "%s/webgateway/imgData/%d";
-    private static final String MULTI_RESOLUTION_TILE_URL = "%s/webgateway/render_image_region/%d/%d/%d" +
-            "/?tile=%d,%d,%d,%d,%d" +
-            "&%s" +
-            "&%s" +
-            "&m=c&p=normal&q=%f";
-    private static final String TILE_FIRST_PARAMETER = URLEncoder.encode("c=1|0:255$FF0000,2|0:255$00FF00,3|0:255$0000FF", StandardCharsets.UTF_8);
-    private static final String TILE_SECOND_PARAMETER =
-            URLEncoder.encode("maps=[{\"inverted\":{\"enabled\":false}},{\"inverted\":{\"enabled\":false}},{\"inverted\":{\"enabled\":false}}]", StandardCharsets.UTF_8);
-    private static final String CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS = "%s/webgateway/saveImgRDef/%d/?m=c&c=%s";
+    private static final String TILE_URL = "%s/webgateway/render_image_region/%d/%d/%d/?" +
+            "tile=%d,%d,%d,%d,%d" +
+            "&c=%s" +
+            "&q=%f";
+    private static final String TILE_CHANNEL_PARAMETER = URLEncoder.encode("1|0:255$FF0000,2|0:255$00FF00,3|0:255$0000FF", StandardCharsets.UTF_8);
+    private static final String CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS_URL = "%s/webgateway/saveImgRDef/%d/?m=c&c=%s";
     private final IntegerProperty numberOfThumbnailsLoading = new SimpleIntegerProperty(0);
     private final URI host;
     private String token;
@@ -166,12 +163,11 @@ class WebGatewayApi {
      * @return a CompletableFuture with the tile, or an empty Optional if an error occurred
      */
     public CompletableFuture<Optional<BufferedImage>> readTile(long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality) {
-        return ApiUtilities.getImage(String.format(MULTI_RESOLUTION_TILE_URL,
+        return ApiUtilities.getImage(String.format(TILE_URL,
                 host, id, tileRequest.getZ(), tileRequest.getT(),
                 tileRequest.getLevel(), tileRequest.getTileX() / preferredTileWidth, tileRequest.getTileY() / preferredTileHeight,
                 preferredTileWidth, preferredTileHeight,
-                TILE_FIRST_PARAMETER,
-                TILE_SECOND_PARAMETER,
+                TILE_CHANNEL_PARAMETER,
                 quality
         ));
     }
@@ -242,7 +238,7 @@ class WebGatewayApi {
 
     private CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelSettings> channelSettings) {
         var uri = WebUtilities.createURI(String.format(
-                CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS,
+                CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS_URL,
                 host,
                 imageID,
                 URLEncoder.encode(

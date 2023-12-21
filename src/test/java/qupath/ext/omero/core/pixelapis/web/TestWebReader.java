@@ -133,8 +133,8 @@ public class TestWebReader extends OmeroServer {
                     Double.NaN
             );
 
-            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 3);
-            Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 11);
+            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 0.1);
+            Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 0.1);
         }
     }
 }
