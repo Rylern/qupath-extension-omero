@@ -4,7 +4,10 @@ import com.google.gson.JsonObject;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import qupath.lib.awt.common.BufferedImageTools;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import qupath.ext.omero.core.entities.image.ChannelSettings;
+import qupath.lib.common.ColorTools;
 import qupath.lib.images.servers.TileRequest;
 import qupath.ext.omero.core.entities.imagemetadata.ImageMetadataResponse;
 import qupath.ext.omero.core.WebUtilities;
@@ -14,8 +17,11 @@ import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * <p>API to communicate with a OMERO.gateway server.</p>
@@ -26,27 +32,22 @@ import java.util.concurrent.CompletableFuture;
  */
 class WebGatewayApi {
 
+    private static final Logger logger = LoggerFactory.getLogger(WebGatewayApi.class);
     private static final String ICON_URL = "%s/static/webgateway/img/%s";
     private static final String PROJECT_ICON_NAME = "folder16.png";
     private static final String DATASET_ICON_NAME = "folder_image16.png";
     private static final String ORPHANED_FOLDER_ICON_NAME = "folder_yellow16.png";
     private static final String THUMBNAIL_URL = "%s/webgateway/render_thumbnail/%d/%d";
     private static final String IMAGE_DATA_URL = "%s/webgateway/imgData/%d";
-    private static final String SINGLE_RESOLUTION_TILE_URL = "%s/webgateway/render_image_region/%d/%d/%d" +
-            "/?region=%d,%d,%d,%d" +
-            "&%s" +
-            "&%s" +
-            "&m=c&p=normal&q=%f";
-    private static final String MULTI_RESOLUTION_TILE_URL = "%s/webgateway/render_image_region/%d/%d/%d" +
-            "/?tile=%d,%d,%d,%d,%d" +
-            "&%s" +
-            "&%s" +
-            "&m=c&p=normal&q=%f";
-    private static final String TILE_FIRST_PARAMETER = URLEncoder.encode("c=1|0:255$FF0000,2|0:255$00FF00,3|0:255$0000FF", StandardCharsets.UTF_8);
-    private static final String TILE_SECOND_PARAMETER =
-            URLEncoder.encode("maps=[{\"inverted\":{\"enabled\":false}},{\"inverted\":{\"enabled\":false}},{\"inverted\":{\"enabled\":false}}]", StandardCharsets.UTF_8);
+    private static final String TILE_URL = "%s/webgateway/render_image_region/%d/%d/%d/?" +
+            "tile=%d,%d,%d,%d,%d" +
+            "&c=%s" +
+            "&q=%f";
+    private static final String TILE_CHANNEL_PARAMETER = URLEncoder.encode("1|0:255$FF0000,2|0:255$00FF00,3|0:255$0000FF", StandardCharsets.UTF_8);
+    private static final String CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS_URL = "%s/webgateway/saveImgRDef/%d/?m=c&c=%s";
     private final IntegerProperty numberOfThumbnailsLoading = new SimpleIntegerProperty(0);
     private final URI host;
+    private String token;
 
     /**
      * Creates a web gateway client.
@@ -60,6 +61,16 @@ class WebGatewayApi {
     @Override
     public String toString() {
         return String.format("WebGateway API of %s", host);
+    }
+
+    /**
+     * Set the <a href="https://docs.openmicroscopy.org/omero/5.6.0/developers/json-api.html#get-csrf-token">CSRF token</a>
+     * used by this session. This is needed to perform some functions of this API.
+     *
+     * @param token  the CSRF token of the session
+     */
+    public void setToken(String token) {
+        this.token = token;
     }
 
     /**
@@ -141,33 +152,7 @@ class WebGatewayApi {
     }
 
     /**
-     * <p>Attempt to read a tile (portion of image) from a single resolution image.</p>
-     * <p>This function is asynchronous.</p>
-     *
-     * @param id  the OMERO image ID
-     * @param tileRequest  the tile request (usually coming from the {@link qupath.lib.images.servers.AbstractTileableImageServer AbstractTileableImageServer})
-     * @param preferredTileWidth  the preferred tile width in pixels
-     * @param preferredTileHeight  the preferred tile height in pixels
-     * @param quality  the JPEG quality, from 0 to 1
-     * @param allowSmoothInterpolation  whether to use smooth interpolation when resizing
-     * @return a CompletableFuture with the tile, or an empty Optional if an error occurred
-     */
-    public CompletableFuture<Optional<BufferedImage>> readSingleResolutionTile(Long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality, boolean allowSmoothInterpolation) {
-        return ApiUtilities.getImage(String.format(SINGLE_RESOLUTION_TILE_URL,
-                        host, id, tileRequest.getZ(), tileRequest.getT(),
-                        tileRequest.getTileX(), tileRequest.getTileY(), preferredTileWidth, preferredTileHeight,
-                        TILE_FIRST_PARAMETER,
-                        TILE_SECOND_PARAMETER,
-                        quality
-                )
-        )
-                .thenApply(bufferedImage ->
-                        bufferedImage.map(image -> BufferedImageTools.resize(image, tileRequest.getTileWidth(), tileRequest.getTileHeight(), allowSmoothInterpolation))
-                );
-    }
-
-    /**
-     * <p>Attempt to read a tile (portion of image) from a multi resolution image.</p>
+     * <p>Attempt to read a tile (portion of image).</p>
      * <p>This function is asynchronous.</p>
      *
      * @param id  the OMERO image ID
@@ -177,19 +162,116 @@ class WebGatewayApi {
      * @param quality  the JPEG quality, from 0 to 1
      * @return a CompletableFuture with the tile, or an empty Optional if an error occurred
      */
-    public CompletableFuture<Optional<BufferedImage>> readMultiResolutionTile(Long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality) {
-        return ApiUtilities.getImage(String.format(MULTI_RESOLUTION_TILE_URL,
+    public CompletableFuture<Optional<BufferedImage>> readTile(long id, TileRequest tileRequest, int preferredTileWidth, int preferredTileHeight, double quality) {
+        return ApiUtilities.getImage(String.format(TILE_URL,
                 host, id, tileRequest.getZ(), tileRequest.getT(),
                 tileRequest.getLevel(), tileRequest.getTileX() / preferredTileWidth, tileRequest.getTileY() / preferredTileHeight,
                 preferredTileWidth, preferredTileHeight,
-                TILE_FIRST_PARAMETER,
-                TILE_SECOND_PARAMETER,
+                TILE_CHANNEL_PARAMETER,
                 quality
         ));
+    }
+
+    /**
+     * <p>
+     *     Attempt to change the channel colors of an image.
+     * </p>
+     * <p>This function is asynchronous.</p>
+     *
+     * @param imageID  the ID of the image to change the channel settings
+     * @param newChannelColors  the new channel colors, with the packed RGB format
+     * @param existingChannelSettings  the existing channel settings of the image
+     * @return a CompletableFuture indicating the success of the operation
+     */
+    public CompletableFuture<Boolean> changeChannelColors(long imageID, List<Integer> newChannelColors, List<ChannelSettings> existingChannelSettings) {
+        if (newChannelColors.size() == existingChannelSettings.size()) {
+            return changeChannelDisplayRangesAndColors(
+                    imageID,
+                    IntStream.range(0, existingChannelSettings.size())
+                            .mapToObj(i -> new ChannelSettings(
+                                    existingChannelSettings.get(i).getMinDisplayRange(),
+                                    existingChannelSettings.get(i).getMaxDisplayRange(),
+                                    newChannelColors.get(i)
+                            ))
+                            .toList()
+            );
+        } else {
+            logger.warn("The provided number of new channel colors doesn't match with the existing number of channels");
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    /**
+     * <p>
+     *     Attempt to change the channel display ranges of an image.
+     * </p>
+     * <p>This function is asynchronous.</p>
+     *
+     * @param imageID  the ID of the image to change the channel settings
+     * @param newChannelSettings  the new channel display ranges (other fields of {@link ChannelSettings}
+     *                         will be ignored)
+     * @param existingChannelSettings  the existing channel settings of the image
+     * @return a CompletableFuture indicating the success of the operation
+     */
+    public CompletableFuture<Boolean> changeChannelDisplayRanges(long imageID, List<ChannelSettings> newChannelSettings, List<ChannelSettings> existingChannelSettings) {
+        if (newChannelSettings.size() == existingChannelSettings.size()) {
+            return changeChannelDisplayRangesAndColors(
+                    imageID,
+                    IntStream.range(0, existingChannelSettings.size())
+                            .mapToObj(i -> new ChannelSettings(
+                                    newChannelSettings.get(i).getMinDisplayRange(),
+                                    newChannelSettings.get(i).getMaxDisplayRange(),
+                                    existingChannelSettings.get(i).getRgbColor()
+                            ))
+                            .toList()
+            );
+        } else {
+            logger.warn("The provided number of new channel settings doesn't match with the existing number of channels");
+            return CompletableFuture.completedFuture(false);
+        }
     }
 
     private synchronized void changeNumberOfThumbnailsLoading(boolean increment) {
         int quantityToAdd = increment ? 1 : -1;
         numberOfThumbnailsLoading.set(numberOfThumbnailsLoading.get() + quantityToAdd);
+    }
+
+    private CompletableFuture<Boolean> changeChannelDisplayRangesAndColors(long imageID, List<ChannelSettings> channelSettings) {
+        var uri = WebUtilities.createURI(String.format(
+                CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS_URL,
+                host,
+                imageID,
+                URLEncoder.encode(
+                        IntStream
+                                .range(0, channelSettings.size())
+                                .mapToObj(i -> String.format(
+                                        "%d|%f:%f$%s",
+                                        i + 1,
+                                        channelSettings.get(i).getMinDisplayRange(),
+                                        channelSettings.get(i).getMaxDisplayRange(),
+                                        String.format(
+                                                "%02X%02X%02X",
+                                                ColorTools.unpackRGB(channelSettings.get(i).getRgbColor())[0],
+                                                ColorTools.unpackRGB(channelSettings.get(i).getRgbColor())[1],
+                                                ColorTools.unpackRGB(channelSettings.get(i).getRgbColor())[2]
+                                        )
+                                ))
+                                .collect(Collectors.joining(",")),
+                        StandardCharsets.UTF_8
+                )
+        ));
+
+
+
+        if (uri.isPresent()) {
+            return RequestSender.post(
+                    uri.get(),
+                    "",
+                    "",
+                    token
+            ).thenApply(response -> response.isPresent() && response.get().equals("true"));
+        } else {
+            return CompletableFuture.completedFuture(false);
+        }
     }
 }

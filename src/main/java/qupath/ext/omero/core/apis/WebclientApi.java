@@ -397,7 +397,7 @@ class WebclientApi implements AutoCloseable {
      * @param channelsName  the new names of the channels
      * @return a CompletableFuture indicating the success of the operation
      */
-    public CompletableFuture<Boolean> changeChannelsName(long imageId, List<String> channelsName) {
+    public CompletableFuture<Boolean> changeChannelNames(long imageId, List<String> channelsName) {
         var uri = WebUtilities.createURI(String.format(
                 WRITE_CHANNEL_NAMES_URL,
                 host,

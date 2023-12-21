@@ -96,12 +96,7 @@ public class WebAPI implements PixelAPI {
     }
 
     @Override
-    public PixelAPIReader createReader(
-            long id,
-            ImageServerMetadata metadata,
-            boolean allowSmoothInterpolation,
-            int nResolutions
-    ) {
+    public PixelAPIReader createReader(long id, ImageServerMetadata metadata) {
         if (!isAvailable().get()) {
             throw new IllegalStateException("This API is not available and cannot be used");
         }
@@ -112,8 +107,6 @@ public class WebAPI implements PixelAPI {
         return new WebReader(
                 client.getApisHandler(),
                 id,
-                allowSmoothInterpolation,
-                nResolutions,
                 metadata.getPreferredTileWidth(),
                 metadata.getPreferredTileHeight(),
                 jpegQuality.get()

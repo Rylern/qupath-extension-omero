@@ -1,5 +1,6 @@
 package qupath.ext.omero.gui.datatransporters;
 
+import javafx.beans.binding.Bindings;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import qupath.lib.gui.QuPathGUI;
@@ -30,11 +31,15 @@ public class DataTransporterMenu extends Menu {
         getItems().addAll(transporters.stream()
                 .map(dataTransporter -> {
                     MenuItem menuItem = new MenuItem(dataTransporter.getMenuTitle());
-
                     menuItem.setOnAction(ignored -> dataTransporter.transportData());
-                    if (dataTransporter.requireProject()) {
-                        menuItem.disableProperty().bind(qupath.projectProperty().isNull());
-                    }
+
+                    menuItem.disableProperty().bind(Bindings.createBooleanBinding(
+                            () -> !dataTransporter.canTransportData(
+                                    qupath.getProject() != null,
+                                    qupath.getImageData() != null && qupath.getViewer().getServer().getMetadata().isRGB()
+                            ),
+                            qupath.projectProperty(), qupath.imageDataProperty()
+                    ));
 
                     return menuItem;
                 })

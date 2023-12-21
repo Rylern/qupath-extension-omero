@@ -39,8 +39,8 @@ public class AnnotationImporter implements DataTransporter {
     }
 
     @Override
-    public boolean requireProject() {
-        return false;
+    public boolean canTransportData(boolean projectOpened, boolean isRGB) {
+        return true;
     }
 
     @Override

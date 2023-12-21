@@ -5,8 +5,8 @@ import qupath.ext.omero.OmeroServer;
 import qupath.ext.omero.core.WebClient;
 import qupath.ext.omero.core.WebClients;
 import qupath.ext.omero.core.pixelapis.PixelAPIReader;
-import qupath.ext.omero.core.pixelapis.mspixelbuffer.MsPixelBufferAPI;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
+import qupath.ext.omero.imagesserver.OmeroImageServerBuilder;
 import qupath.lib.analysis.stats.Histogram;
 import qupath.lib.common.ColorTools;
 import qupath.lib.images.servers.ImageServerMetadata;
@@ -47,32 +47,32 @@ public class TestWebReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getRGBImageURI())) {
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(
+                    OmeroServer.getRGBImageURI(),
+                    "--pixelAPI", "Web",
+                    "--jpegQuality", "1.0")
+            ) {
                 tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
                 metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
             reader = client.getPixelAPI(WebAPI.class).createReader(
                     OmeroServer.getRGBImage().getId(),
-                    metadata,
-                    true,
-                    nResolutions
+                    metadata
             );
         }
 
         @Test
         @Override
         void Check_Image_Histogram() throws IOException {
-            double expectedMean = OmeroServer.getUInt8ImageRedChannelMean();
-            double expectedStdDev = OmeroServer.getUInt8ImageRedChannelStdDev();
+            double expectedMean = OmeroServer.getRGBImageRedChannelMean();
+            double expectedStdDev = OmeroServer.getRGBImageRedChannelStdDev();
 
             BufferedImage image = reader.readTile(tileRequest);
 
@@ -84,8 +84,9 @@ public class TestWebReader extends OmeroServer {
                     Double.NaN,
                     Double.NaN
             );
-            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 10);
-            Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 12);
+
+            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 0.1);
+            Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 0.1);
         }
     }
 
@@ -94,24 +95,24 @@ public class TestWebReader extends OmeroServer {
 
         @BeforeAll
         static void createClient() throws ExecutionException, InterruptedException {
-            client = OmeroServer.createUnauthenticatedClient();
+            client = OmeroServer.createAuthenticatedClient();
 
             ImageServerMetadata metadata;
-            int nResolutions;
-            try (OmeroImageServer imageServer = OmeroServer.createImageServer(OmeroServer.getUInt8ImageURI())) {
+            try (OmeroImageServer imageServer = (OmeroImageServer) new OmeroImageServerBuilder().buildServer(
+                    OmeroServer.getUInt8ImageURI(),
+                    "--pixelAPI", "Web",
+                    "--jpegQuality", "1.0")
+            ) {
                 tileRequest = imageServer.getTileRequestManager().getTileRequest(0, 0, 0, 0, 0);
 
                 metadata = imageServer.getMetadata();
-                nResolutions = imageServer.nResolutions();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
-            reader = client.getPixelAPI(MsPixelBufferAPI.class).createReader(
+            reader = client.getPixelAPI(WebAPI.class).createReader(
                     OmeroServer.getUInt8Image().getId(),
-                    metadata,
-                    true,
-                    nResolutions
+                    metadata
             );
         }
 
@@ -132,8 +133,8 @@ public class TestWebReader extends OmeroServer {
                     Double.NaN
             );
 
-            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 0.001);
-            Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 0.001);
+            Assertions.assertEquals(expectedMean, histogram.getMeanValue(), 0.1);
+            Assertions.assertEquals(expectedStdDev, histogram.getStdDev(), 0.1);
         }
     }
 }

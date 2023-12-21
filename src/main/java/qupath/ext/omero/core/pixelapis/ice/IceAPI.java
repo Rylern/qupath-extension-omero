@@ -74,12 +74,7 @@ public class IceAPI implements PixelAPI {
     }
 
     @Override
-    public PixelAPIReader createReader(
-            long id,
-            ImageServerMetadata metadata,
-            boolean allowSmoothInterpolation,
-            int nResolutions
-    ) throws IOException {
+    public PixelAPIReader createReader(long id, ImageServerMetadata metadata) throws IOException {
         if (!isAvailable().get()) {
             throw new IllegalStateException("This API is not available and cannot be used");
         }

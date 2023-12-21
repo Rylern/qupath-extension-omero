@@ -16,14 +16,14 @@ import org.testcontainers.utility.MountableFile;
 import qupath.ext.omero.core.WebClient;
 import qupath.ext.omero.core.WebClients;
 import qupath.ext.omero.core.entities.annotations.AnnotationGroup;
+import qupath.ext.omero.core.entities.image.ChannelSettings;
+import qupath.ext.omero.core.entities.image.ImageSettings;
 import qupath.ext.omero.core.entities.permissions.Group;
 import qupath.ext.omero.core.entities.permissions.Owner;
 import qupath.ext.omero.core.entities.repositoryentities.serverentities.*;
 import qupath.ext.omero.core.entities.repositoryentities.serverentities.image.Image;
 import qupath.ext.omero.core.entities.search.SearchResult;
 import qupath.ext.omero.core.pixelapis.mspixelbuffer.MsPixelBufferAPI;
-import qupath.ext.omero.imagesserver.OmeroImageServer;
-import qupath.ext.omero.imagesserver.OmeroImageServerBuilder;
 import qupath.lib.images.servers.PixelType;
 
 import java.io.IOException;
@@ -237,10 +237,6 @@ public abstract class OmeroServer {
         );
     }
 
-    protected static OmeroImageServer createImageServer(URI uri) {
-        return (OmeroImageServer) new OmeroImageServerBuilder().buildServer(uri, "--pixelAPI", "Pixel Buffer Microservice");
-    }
-
     protected static String getServerURI() {
         return "omero-server";
     }
@@ -430,10 +426,6 @@ public abstract class OmeroServer {
         return 3;
     }
 
-    protected static List<String> getRGBImageChannelsName() {
-        return List.of("0", "1", "2");
-    }
-
     protected static int getRGBImageNumberOfTimePoints() {
         return 1;
     }
@@ -490,22 +482,6 @@ public abstract class OmeroServer {
         return 24.279;
     }
 
-    protected static Image getInt8Image() {
-        return getImagesInDataset().get(2);
-    }
-
-    protected static URI getInt8ImageURI() {
-        return getImagesUriInDataset().get(2);
-    }
-
-    protected static double getInt8ImageRedChannelMean() {
-        return 5.693;
-    }
-
-    protected static double getInt8ImageRedChannelStdDev() {
-        return 19.393;
-    }
-
     protected static Image getUInt16Image() {
         return getImagesInDataset().get(3);
     }
@@ -536,22 +512,6 @@ public abstract class OmeroServer {
 
     protected static double getInt16ImageRedChannelStdDev() {
         return 22.913;
-    }
-
-    protected static Image getUInt32Image() {
-        return getImagesInDataset().get(5);
-    }
-
-    protected static URI getUInt32ImageURI() {
-        return getImagesUriInDataset().get(5);
-    }
-
-    protected static double getUInt32ImageRedChannelMean() {
-        return 8.050;
-    }
-
-    protected static double getUInt32ImageRedChannelStdDev() {
-        return 27.392;
     }
 
     protected static Image getInt32Image() {
@@ -586,8 +546,16 @@ public abstract class OmeroServer {
         return 28.605;
     }
 
-    protected static List<String> getFloat32ImageChannelsName() {
-        return List.of("0", "1", "2");
+    protected static ImageSettings getFloat32ImageSettings() {
+        return new ImageSettings("float32.tiff", getFloat32ChannelSettings());
+    }
+
+    protected static List<ChannelSettings> getFloat32ChannelSettings() {
+        return List.of(
+                new ChannelSettings("0", 0, 211, Integer.parseInt("FF0000", 16)),
+                new ChannelSettings("1", 0, 248, Integer.parseInt("00FF00", 16)),
+                new ChannelSettings("2", 0, 184, Integer.parseInt("0000FF", 16))
+        );
     }
 
     protected static Image getFloat64Image() {
@@ -636,10 +604,6 @@ public abstract class OmeroServer {
 
     protected static int getComplexImageNumberOfChannels() {
         return 1;
-    }
-
-    protected static List<String> getComplexImageChannelsName() {
-        return List.of("0");
     }
 
     protected static int getComplexImageNumberOfTimePoints() {

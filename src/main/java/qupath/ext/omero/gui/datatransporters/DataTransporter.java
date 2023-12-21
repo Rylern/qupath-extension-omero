@@ -11,9 +11,13 @@ public interface DataTransporter {
     String getMenuTitle();
 
     /**
-     * @return whether this transporter needs an opened project in order to work
+     * Indicate if this transporter can transport data given the provided conditions.
+     *
+     * @param projectOpened  whether there is a QuPath project currently opened
+     * @param isRGB  whether the current image uses the RGB format
+     * @return whether this transport can work
      */
-    boolean requireProject();
+    boolean canTransportData(boolean projectOpened, boolean isRGB);
 
     /**
      * Attempt to import or export data between the currently opened image and its corresponding OMERO server.

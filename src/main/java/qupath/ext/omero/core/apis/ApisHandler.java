@@ -3,6 +3,8 @@ package qupath.ext.omero.core.apis;
 import com.drew.lang.annotations.Nullable;
 import javafx.beans.property.*;
 import qupath.ext.omero.core.entities.annotations.AnnotationGroup;
+import qupath.ext.omero.core.entities.image.ChannelSettings;
+import qupath.ext.omero.core.entities.image.ImageSettings;
 import qupath.ext.omero.core.entities.login.LoginResponse;
 import qupath.ext.omero.core.entities.repositoryentities.OrphanedFolder;
 import qupath.ext.omero.core.entities.repositoryentities.RepositoryEntity;
@@ -76,6 +78,7 @@ public class ApisHandler implements AutoCloseable {
             if (jsonApi.isPresent()) {
                 apisHandler.jsonApi = jsonApi.get();
                 apisHandler.webclientApi.setToken(jsonApi.get().getToken());
+                apisHandler.webGatewayApi.setToken(jsonApi.get().getToken());
                 return Optional.of(apisHandler);
             } else {
                 return Optional.empty();
@@ -367,10 +370,10 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebclientApi#changeChannelsName(long, List)}.
+     * See {@link WebclientApi#changeChannelNames(long, List)}.
      */
-    public CompletableFuture<Boolean> changeChannelsName(long imageId, List<String> channelsName) {
-        return webclientApi.changeChannelsName(imageId, channelsName);
+    public CompletableFuture<Boolean> changeChannelNames(long imageId, List<String> channelsName) {
+        return webclientApi.changeChannelNames(imageId, channelsName);
     }
 
     /**
@@ -456,37 +459,49 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebGatewayApi#readSingleResolutionTile(Long, TileRequest, int, int, double, boolean)}.
+     * See {@link WebGatewayApi#getImageMetadata(long)}.
      */
-    public CompletableFuture<Optional<BufferedImage>> readSingleResolutionTile(
-            Long id,
-            TileRequest tileRequest,
-            int preferredTileWidth,
-            int preferredTileHeight,
-            double quality,
-            boolean allowSmoothInterpolation
-    ) {
-        return webGatewayApi.readSingleResolutionTile(id, tileRequest, preferredTileWidth, preferredTileHeight, quality, allowSmoothInterpolation);
+    public CompletableFuture<Optional<ImageMetadataResponse>> getImageMetadata(long id) {
+        return webGatewayApi.getImageMetadata(id);
     }
 
     /**
-     * See {@link WebGatewayApi#readMultiResolutionTile(Long, TileRequest, int, int, double)}.
+     * See {@link WebGatewayApi#readTile(long, TileRequest, int, int, double)}.
      */
-    public CompletableFuture<Optional<BufferedImage>> readMultiResolutionTile(
-            Long id,
+    public CompletableFuture<Optional<BufferedImage>> readTile(
+            long id,
             TileRequest tileRequest,
             int preferredTileWidth,
             int preferredTileHeight,
             double quality
     ) {
-        return webGatewayApi.readMultiResolutionTile(id, tileRequest, preferredTileWidth, preferredTileHeight, quality);
+        return webGatewayApi.readTile(id, tileRequest, preferredTileWidth, preferredTileHeight, quality);
     }
 
     /**
-     * See {@link WebGatewayApi#getImageMetadata(long)}.
+     * See {@link WebGatewayApi#changeChannelColors(long, List, List)}.
      */
-    public CompletableFuture<Optional<ImageMetadataResponse>> getImageMetadata(long id) {
-        return webGatewayApi.getImageMetadata(id);
+    public CompletableFuture<Boolean> changeChannelColors(long imageID, List<Integer> newChannelColors) {
+        return getImageSettings(imageID).thenCompose(imageSettings -> {
+            if (imageSettings.isPresent()) {
+                return webGatewayApi.changeChannelColors(imageID, newChannelColors, imageSettings.get().getChannelSettings());
+            } else {
+                return CompletableFuture.completedFuture(false);
+            }
+        });
+    }
+
+    /**
+     * See {@link WebGatewayApi#changeChannelDisplayRanges(long, List, List)}.
+     */
+    public CompletableFuture<Boolean> changeChannelDisplayRanges(long imageID, List<ChannelSettings> newChannelSettings) {
+        return getImageSettings(imageID).thenCompose(imageSettings -> {
+            if (imageSettings.isPresent()) {
+                return webGatewayApi.changeChannelDisplayRanges(imageID, newChannelSettings, imageSettings.get().getChannelSettings());
+            } else {
+                return CompletableFuture.completedFuture(false);
+            }
+        });
     }
 
     /**
@@ -503,5 +518,12 @@ public class ApisHandler implements AutoCloseable {
         CompletableFuture<List<Shape>> roisToRemoveFuture = removeExistingROIs ? getROIs(id) : CompletableFuture.completedFuture(List.of());
 
         return roisToRemoveFuture.thenCompose(roisToRemove -> iViewerApi.writeROIs(id, shapes, roisToRemove, jsonApi.getToken()));
+    }
+
+    /**
+     * See {@link IViewerApi#getImageSettings(long)}.
+     */
+    public CompletableFuture<Optional<ImageSettings>> getImageSettings(long imageId) {
+        return iViewerApi.getImageSettings(imageId);
     }
 }

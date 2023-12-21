@@ -3,12 +3,14 @@ package qupath.ext.omero.gui.datatransporters.importers;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import qupath.ext.omero.core.entities.repositoryentities.serverentities.image.Image;
+import qupath.ext.omero.core.entities.image.ChannelSettings;
 import qupath.ext.omero.gui.UiUtilities;
 import qupath.ext.omero.gui.datatransporters.DataTransporter;
 import qupath.ext.omero.gui.datatransporters.forms.ImageSettingsForm;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
 import qupath.fx.dialogs.Dialogs;
+import qupath.lib.display.ChannelDisplayInfo;
+import qupath.lib.display.ImageDisplay;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.viewer.QuPathViewer;
 import qupath.lib.images.ImageData;
@@ -41,8 +43,8 @@ public class ImageSettingsImporter implements DataTransporter {
     }
 
     @Override
-    public boolean requireProject() {
-        return false;
+    public boolean canTransportData(boolean projectOpened, boolean isRGB) {
+        return projectOpened | !isRGB;
     }
 
     @Override
@@ -53,7 +55,10 @@ public class ImageSettingsImporter implements DataTransporter {
         if (viewer.getServer() instanceof OmeroImageServer omeroImageServer) {
             ImageSettingsForm imageSettingsForm;
             try {
-                imageSettingsForm = new ImageSettingsForm();
+                imageSettingsForm = new ImageSettingsForm(
+                        quPathGUI.getProject() == null,
+                        omeroImageServer.getMetadata().isRGB()
+                );
             } catch (IOException e) {
                 logger.error("Error when creating the image settings form", e);
                 Dialogs.showErrorMessage(
@@ -70,13 +75,13 @@ public class ImageSettingsImporter implements DataTransporter {
             List<ImageSettingsForm.Choice> selectedChoices = imageSettingsForm.getSelectedChoices();
 
             if (confirmed && !selectedChoices.isEmpty()) {
-                omeroImageServer.getClient().getApisHandler().getImage(omeroImageServer.getId()).thenAccept(image -> Platform.runLater(() -> {
-                    if (image.isPresent()) {
+                omeroImageServer.getClient().getApisHandler().getImageSettings(omeroImageServer.getId()).thenAccept(imageSettings -> Platform.runLater(() -> {
+                    if (imageSettings.isPresent()) {
                         StringBuilder successMessage = new StringBuilder();
                         StringBuilder errorMessage = new StringBuilder();
 
                         if (selectedChoices.contains(ImageSettingsForm.Choice.IMAGE_NAME)) {
-                            if (changeImageName(quPathGUI, viewer.getImageData(), image.get())) {
+                            if (changeImageName(quPathGUI, viewer.getImageData(), imageSettings.get().getName())) {
                                 successMessage
                                         .append(resources.getString("DataTransporters.ImageSettingsImporter.imageNameUpdated"))
                                         .append("\n");
@@ -88,13 +93,37 @@ public class ImageSettingsImporter implements DataTransporter {
                         }
 
                         if (selectedChoices.contains(ImageSettingsForm.Choice.CHANNEL_NAMES)) {
-                            if (changeChannelNames(omeroImageServer, viewer, image.get())) {
+                            if (changeChannelNames(omeroImageServer, viewer, imageSettings.get().getChannelSettings())) {
                                 successMessage
                                         .append(resources.getString("DataTransporters.ImageSettingsImporter.channelNamesUpdated"))
                                         .append("\n");
                             } else {
                                 errorMessage
                                         .append(resources.getString("DataTransporters.ImageSettingsImporter.channelNamesNotUpdated"))
+                                        .append("\n");
+                            }
+                        }
+
+                        if (selectedChoices.contains(ImageSettingsForm.Choice.CHANNEL_COLORS)) {
+                            if (changeChannelColors(omeroImageServer, viewer, imageSettings.get().getChannelSettings())) {
+                                successMessage
+                                        .append(resources.getString("DataTransporters.ImageSettingsImporter.channelColorsUpdated"))
+                                        .append("\n");
+                            } else {
+                                errorMessage
+                                        .append(resources.getString("DataTransporters.ImageSettingsImporter.channelColorsNotUpdated"))
+                                        .append("\n");
+                            }
+                        }
+
+                        if (selectedChoices.contains(ImageSettingsForm.Choice.CHANNEL_DISPLAY_RANGES)) {
+                            if (changeChannelDisplayRanges(viewer, imageSettings.get().getChannelSettings())) {
+                                successMessage
+                                        .append(resources.getString("DataTransporters.ImageSettingsImporter.channelDisplayRangesUpdated"))
+                                        .append("\n");
+                            } else {
+                                errorMessage
+                                        .append(resources.getString("DataTransporters.ImageSettingsImporter.channelDisplayRangesNotUpdated"))
                                         .append("\n");
                             }
                         }
@@ -128,22 +157,22 @@ public class ImageSettingsImporter implements DataTransporter {
         }
     }
 
-    private static boolean changeImageName(QuPathGUI quPathGUI, ImageData<BufferedImage> imageData, Image image) {
+    private static boolean changeImageName(QuPathGUI quPathGUI, ImageData<BufferedImage> imageData, String imageName) {
         Project<BufferedImage> project = quPathGUI.getProject();
 
         if (project != null && project.getEntry(imageData) != null) {
-            project.getEntry(imageData).setImageName(image.getName());
+            project.getEntry(imageData).setImageName(imageName);
             return true;
         } else {
             return false;
         }
     }
 
-    private static boolean changeChannelNames(OmeroImageServer omeroImageServer, QuPathViewer viewer, Image image) {
+    private static boolean changeChannelNames(OmeroImageServer omeroImageServer, QuPathViewer viewer, List<ChannelSettings> channelSettings) {
         List<ImageChannel> channels = omeroImageServer.getMetadata().getChannels();
-        List<String> newChannelNames = image.getChannelsName();
+        List<String> newChannelNames = channelSettings.stream().map(ChannelSettings::getName).toList();
 
-        if (channels.size() == image.getChannelsName().size()) {
+        if (channels.size() == newChannelNames.size()) {
             viewer.getImageData().updateServerMetadata(new ImageServerMetadata.Builder(omeroImageServer.getMetadata())
                     .channels(IntStream.range(0, channels.size())
                             .mapToObj(i -> ImageChannel.getInstance(newChannelNames.get(i), channels.get(i).getColor()))
@@ -151,6 +180,44 @@ public class ImageSettingsImporter implements DataTransporter {
                     )
                     .build()
             );
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private static boolean changeChannelColors(OmeroImageServer omeroImageServer, QuPathViewer viewer, List<ChannelSettings> channelSettings) {
+        List<ImageChannel> channels = omeroImageServer.getMetadata().getChannels();
+        List<Integer> newChannelColors = channelSettings.stream()
+                .map(ChannelSettings::getRgbColor)
+                .toList();
+
+        if (channels.size() == newChannelColors.size()) {
+            viewer.getImageData().updateServerMetadata(new ImageServerMetadata.Builder(omeroImageServer.getMetadata())
+                    .channels(IntStream.range(0, channels.size())
+                            .mapToObj(i -> ImageChannel.getInstance(channels.get(i).getName(), newChannelColors.get(i)))
+                            .toList()
+                    )
+                    .build()
+            );
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private static boolean changeChannelDisplayRanges(QuPathViewer viewer, List<ChannelSettings> channelSettings) {
+        ImageDisplay display = viewer.getImageDisplay();
+        List<ChannelDisplayInfo> channels = display.availableChannels();
+
+        if (channels.size() == channelSettings.size()) {
+            for (int i=0; i<channels.size(); i++) {
+                display.setMinMaxDisplay(
+                        channels.get(i),
+                        (float) channelSettings.get(i).getMinDisplayRange(),
+                        (float) channelSettings.get(i).getMaxDisplayRange()
+                );
+            }
             return true;
         } else {
             return false;
