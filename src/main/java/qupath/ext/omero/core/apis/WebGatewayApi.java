@@ -42,6 +42,7 @@ class WebGatewayApi {
     private static final String TILE_URL = "%s/webgateway/render_image_region/%d/%d/%d/?" +
             "tile=%d,%d,%d,%d,%d" +
             "&c=%s" +
+            "&m=c" +
             "&q=%f";
     private static final String TILE_CHANNEL_PARAMETER = URLEncoder.encode("1|0:255$FF0000,2|0:255$00FF00,3|0:255$0000FF", StandardCharsets.UTF_8);
     private static final String CHANGE_CHANNEL_DISPLAY_RANGES_AND_COLORS_URL = "%s/webgateway/saveImgRDef/%d/?m=c&c=%s";
