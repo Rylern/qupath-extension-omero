@@ -51,6 +51,7 @@ class WebclientApi implements AutoCloseable {
     private final static String WRITE_KEY_VALUES_URL = "%s/webclient/annotate_map/";
     private final static String WRITE_NAME_URL = "%s/webclient/action/savename/image/%d/";
     private final static String WRITE_CHANNEL_NAMES_URL = "%s/webclient/edit_channel_names/%d/";
+    private final static String SEND_ATTACHMENT_URL = "%s/webclient/annotate_file/";
     private static final String IMAGE_ICON_URL = "%s/static/webclient/image/image16.png";
     private static final String SCREEN_ICON_URL = "%s/static/webclient/image/folder_screen16.png";
     private static final String PLATE_ICON_URL = "%s/static/webclient/image/folder_plate16.png";
@@ -431,6 +432,60 @@ class WebclientApi implements AutoCloseable {
                     return false;
                 }
             });
+        } else {
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    /**
+     * <p>Send a file to be attached to a server entity.</p>
+     *
+     * @param entity  the entity to send the attachment to.
+     *                Must be an {@link Image}, {@link Dataset}, {@link Project},
+     *                {@link Screen}, {@link Plate} or {@link PlateAcquisition}
+     * @param attachmentName  the name of the file to send
+     * @param attachmentContent  the content of the file to send
+     * @return a CompletableFuture indicating the success of the operation
+     * @throws IllegalArgumentException when the provided entity is not an image, dataset, project,
+     * screen, plate, or plate acquisition
+     */
+    public CompletableFuture<Boolean> sendAttachment(ServerEntity entity, String attachmentName, String attachmentContent) {
+        if (!TYPE_TO_URI_LABEL.containsKey(entity.getClass())) {
+            throw new IllegalArgumentException(String.format(
+                    "The provided item (%s) is not an image, dataset, project, screen, plate, or plate acquisition.",
+                    entity
+            ));
+        }
+
+        var uri = WebUtilities.createURI(String.format(
+                SEND_ATTACHMENT_URL,
+                host
+        ));
+
+        if (uri.isPresent()) {
+            return RequestSender.post(
+                    uri.get(),
+                    attachmentName,
+                    attachmentContent,
+                    token,
+                    Map.of(
+                            TYPE_TO_URI_LABEL.get(entity.getClass()), String.valueOf(entity.getId()),
+                            "index", ""
+                    )
+            ).thenApply(rawResponse -> {
+                if (rawResponse.isPresent()) {
+                    Gson gson = new Gson();
+                    try {
+                        Map<String, List<Long>> response = gson.fromJson(rawResponse.get(), new TypeToken<>() {});
+                        return response != null && response.containsKey("fileIds") && !response.get("fileIds").isEmpty();
+                    } catch (JsonSyntaxException e) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            });
+
         } else {
             return CompletableFuture.completedFuture(false);
         }

@@ -724,6 +724,9 @@ public class TestApisHandler extends OmeroServer {
 
             Assertions.assertEquals(expectedImageSettings, imageSettings);
         }
+
+        @Test
+        abstract void Check_Sending_Of_Attachment() throws ExecutionException, InterruptedException;
     }
 
     @Nested
@@ -858,6 +861,25 @@ public class TestApisHandler extends OmeroServer {
             List<Shape> rois = List.of(new Rectangle(10, 10, 100, 100), new Line(20, 20, 50, 50));
 
             boolean success = apisHandler.writeROIs(imageId, rois, true).get();
+
+            Assertions.assertFalse(success);
+        }
+
+        @Test
+        @Override
+        void Check_Sending_Of_Attachment() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getRGBImage();
+
+            boolean success = apisHandler.sendAttachment(
+                    image,
+                    "annotations.csv",
+                    """
+                    id,value
+                    1,test1
+                    2,test2
+                    3,test3
+                    """
+            ).get();
 
             Assertions.assertFalse(success);
         }
@@ -1197,6 +1219,25 @@ public class TestApisHandler extends OmeroServer {
             List<Shape> rois = List.of(new Rectangle(10, 10, 100, 100), new Line(20, 20, 50, 50));
 
             boolean success = apisHandler.writeROIs(imageId, rois, true).get();
+
+            Assertions.assertTrue(success);
+        }
+
+        @Test
+        @Override
+        void Check_Sending_Of_Attachment() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getRGBImage();
+
+            boolean success = apisHandler.sendAttachment(
+                    image,
+                    "annotations.csv",
+                    """
+                    id,value
+                    1,test1
+                    2,test2
+                    3,test3
+                    """
+            ).get();
 
             Assertions.assertTrue(success);
         }

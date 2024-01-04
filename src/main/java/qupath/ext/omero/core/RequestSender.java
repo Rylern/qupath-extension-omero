@@ -222,9 +222,13 @@ public class RequestSender {
      *               of the session
      */
     public static void post(URI uri, Map<String, String> body, String referer, String token) {
-        getUrlEncodedPOSTRequest(
+        getPOSTRequest(
                 uri,
-                body,
+                HttpRequest.BodyPublishers.ofString(body.entrySet().stream()
+                        .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+                        .collect(Collectors.joining("&"))
+                ),
+                "application/x-www-form-urlencoded",
                 referer,
                 token
         ).ifPresent(RequestSender::request);
@@ -244,9 +248,10 @@ public class RequestSender {
      * @return the raw HTTP response with in text format, or an empty Optional if the request failed
      */
     public static CompletableFuture<Optional<String>> post(URI uri, byte[] body, String referer, String token) {
-        return getUrlEncodedPOSTRequest(
+        return getPOSTRequest(
                 uri,
-                body,
+                HttpRequest.BodyPublishers.ofByteArray(body),
+                "application/x-www-form-urlencoded",
                 referer,
                 token
         )
@@ -268,10 +273,52 @@ public class RequestSender {
      * @return the raw HTTP response with in text format, or an empty Optional if the request failed
      */
     public static CompletableFuture<Optional<String>> post(URI uri, String body, String referer, String token) {
-        return getJSONPOSTRequest(
+        return getPOSTRequest(
                 uri,
-                body,
+                HttpRequest.BodyPublishers.ofString(body),
+                "application/json",
                 referer,
+                token
+        )
+                .map(RequestSender::request)
+                .orElse(CompletableFuture.completedFuture(Optional.empty()));
+    }
+
+    /**
+     * <p>Send a file through a POST request to the specified URI.</p>
+     * <p>The body of the request uses the multipart/form-data content type.</p>
+     *
+     * @param uri  the link of the request
+     * @param fileName  the name of the file to send
+     * @param fileContent  the content of the file to send
+     * @param token  the <a href="https://docs.openmicroscopy.org/omero/5.6.0/developers/json-api.html#get-csrf-token">CSRF token</a>
+     *               of the session
+     * @param parameters  additional parameters to be included in the body of the request
+     * @return the raw HTTP response with in text format, or an empty Optional if the request failed
+     */
+    public static CompletableFuture<Optional<String>> post(URI uri, String fileName, String fileContent, String token, Map<String, String> parameters) {
+        String boundary = generateRandomAlphabeticText();
+
+        String body =
+                String.format("--%s\r\n", boundary) +
+                String.format("Content-Disposition: form-data; name=\"annotation_file\"; filename=\"%s\"\r\n", fileName) +
+                String.format("Content-Type: text/csv\r\n\r\n%s\r\n", fileContent) +
+                String.format("--%s", boundary) +
+                parameters.entrySet().stream()
+                        .map(entry -> String.format(
+                                "\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n%s\r\n--%s",
+                                entry.getKey(),
+                                entry.getValue(),
+                                boundary
+                        ))
+                        .collect(Collectors.joining()) +
+                "--\r\n";
+
+        return getPOSTRequest(
+                uri,
+                HttpRequest.BodyPublishers.ofString(body),
+                "multipart/form-data; boundary=" + boundary,
+                "http://localhost:4080/webclient/",
                 token
         )
                 .map(RequestSender::request)
@@ -349,32 +396,13 @@ public class RequestSender {
         return false;
     }
 
-    private static Optional<HttpRequest> getUrlEncodedPOSTRequest(URI uri, Map<String, String> body, String referer, String token) {
-        return getPOSTRequest(
-                uri,
-                body.entrySet().stream()
-                        .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
-                        .collect(Collectors.joining("&")),
-                "application/x-www-form-urlencoded",
-                referer,
-                token
-        );
-    }
-
-    private static Optional<HttpRequest> getUrlEncodedPOSTRequest(URI uri, byte[] body, String referer, String token) {
-        return getPOSTRequest(
-                uri,
-                body,
-                referer,
-                token
-        );
-    }
-
-    private static Optional<HttpRequest> getJSONPOSTRequest(URI uri, String body, String referer, String token) {
-        return getPOSTRequest(uri, body, "application/json", referer, token);
-    }
-
-    private static Optional<HttpRequest> getPOSTRequest(URI uri, String body, String contentType, String referer, String token) {
+    private static Optional<HttpRequest> getPOSTRequest(
+            URI uri,
+            HttpRequest.BodyPublisher bodyPublisher,
+            String contentType,
+            String referer,
+            String token
+    ) {
         try {
             return Optional.ofNullable(HttpRequest.newBuilder()
                     .uri(uri)
@@ -383,7 +411,7 @@ public class RequestSender {
                             "X-CSRFToken", token,
                             "Referer", referer
                     )
-                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .POST(bodyPublisher)
                     .timeout(Duration.of(REQUEST_TIMEOUT, SECONDS))
                     .build());
         } catch (Exception e) {
@@ -392,21 +420,15 @@ public class RequestSender {
         }
     }
 
-    private static Optional<HttpRequest> getPOSTRequest(URI uri, byte[] body, String referer, String token) {
-        try {
-            return Optional.ofNullable(HttpRequest.newBuilder()
-                    .uri(uri)
-                    .headers(
-                            "Content-Type", "application/x-www-form-urlencoded",
-                            "X-CSRFToken", token,
-                            "Referer", referer
-                    )
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(body))
-                    .timeout(Duration.of(REQUEST_TIMEOUT, SECONDS))
-                    .build());
-        } catch (Exception e) {
-            logger.error("Error when creating POST request", e);
-            return Optional.empty();
-        }
+    private static String generateRandomAlphabeticText() {
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 10;
+        Random random = new Random();
+
+        return random.ints(leftLimit, rightLimit + 1)
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
     }
 }
