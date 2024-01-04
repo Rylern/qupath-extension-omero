@@ -727,6 +727,9 @@ public class TestApisHandler extends OmeroServer {
 
         @Test
         abstract void Check_Sending_Of_Attachment() throws ExecutionException, InterruptedException;
+
+        @Test
+        abstract void Check_Deletion_Of_Attachments() throws ExecutionException, InterruptedException;
     }
 
     @Nested
@@ -882,6 +885,13 @@ public class TestApisHandler extends OmeroServer {
             ).get();
 
             Assertions.assertFalse(success);
+        }
+
+        @Test
+        @Override
+        void Check_Deletion_Of_Attachments() {
+            // Empty because the operation can succeed if no attachments are present
+            // and fail if some attachments are present, which cannot be predicted.
         }
     }
 
@@ -1238,6 +1248,16 @@ public class TestApisHandler extends OmeroServer {
                     3,test3
                     """
             ).get();
+
+            Assertions.assertTrue(success);
+        }
+
+        @Test
+        @Override
+        void Check_Deletion_Of_Attachments() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getRGBImage();
+
+            boolean success = apisHandler.deleteAttachments(image.getId(), image.getClass()).get();
 
             Assertions.assertTrue(success);
         }

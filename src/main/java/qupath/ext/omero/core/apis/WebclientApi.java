@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import qupath.ext.omero.core.entities.annotations.Annotation;
 import qupath.ext.omero.core.entities.annotations.AnnotationGroup;
+import qupath.ext.omero.core.entities.annotations.FileAnnotation;
 import qupath.ext.omero.core.entities.annotations.MapAnnotation;
 import qupath.ext.omero.core.entities.repositoryentities.RepositoryEntity;
 import qupath.ext.omero.core.entities.repositoryentities.serverentities.*;
@@ -52,6 +53,7 @@ class WebclientApi implements AutoCloseable {
     private final static String WRITE_NAME_URL = "%s/webclient/action/savename/image/%d/";
     private final static String WRITE_CHANNEL_NAMES_URL = "%s/webclient/edit_channel_names/%d/";
     private final static String SEND_ATTACHMENT_URL = "%s/webclient/annotate_file/";
+    private final static String DELETE_ATTACHMENT_URL = "%s/webclient/action/delete/file/%d/";
     private static final String IMAGE_ICON_URL = "%s/static/webclient/image/image16.png";
     private static final String SCREEN_ICON_URL = "%s/static/webclient/image/folder_screen16.png";
     private static final String PLATE_ICON_URL = "%s/static/webclient/image/folder_plate16.png";
@@ -489,6 +491,56 @@ class WebclientApi implements AutoCloseable {
         } else {
             return CompletableFuture.completedFuture(false);
         }
+    }
+
+    /**
+     * <p>Delete all attachments of an OMERO entity.</p>
+     *
+     * @param entityId  the ID of the entity whose attachments should be deleted
+     * @param entityClass  the class of the entity whose attachments should be deleted.
+     *                     Must be an {@link Image}, {@link Dataset}, {@link Project},
+     *                     {@link Screen}, {@link Plate}, or {@link PlateAcquisition}.
+     * @return a CompletableFuture indicating the success of the operation
+     * @throws IllegalArgumentException when the provided entity is not an image, dataset, project,
+     * screen, plate, or plate acquisition
+     */
+    public CompletableFuture<Boolean> deleteAttachments(long entityId, Class<? extends RepositoryEntity> entityClass) {
+        return getAnnotations(entityId, entityClass).thenApply(annotationGroup ->
+                annotationGroup
+                        .map(group -> group.getAnnotationsOfClass(FileAnnotation.class).stream()
+                                .map(Annotation::getId)
+                                .toList()
+                        )
+                        .orElseGet(List::of)
+        ).thenApplyAsync(attachmentIds -> {
+            List<URI> uris = attachmentIds.stream()
+                    .map(annotationId -> WebUtilities.createURI(String.format(DELETE_ATTACHMENT_URL, host, annotationId)))
+                    .flatMap(Optional::stream)
+                    .toList();
+
+            if (uris.size() == attachmentIds.size()) {
+                List<String> responses = uris.stream()
+                        .map(uri -> RequestSender.post(uri, "", "", token))
+                        .map(CompletableFuture::join)
+                        .flatMap(Optional::stream)
+                        .filter(rawResponse -> {
+                            Gson gson = new Gson();
+                            try {
+                                Map<String, String> response = gson.fromJson(rawResponse, new TypeToken<>() {});
+                                return response != null && response.containsKey("bad");
+                            } catch (JsonSyntaxException e) {
+                                return false;
+                            }
+                        })
+                        .toList();
+
+                System.err.println(responses);
+
+                return responses.size() == attachmentIds.size();
+            } else {
+                return false;
+            }
+        });
     }
 
     /**
