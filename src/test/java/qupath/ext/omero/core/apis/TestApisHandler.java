@@ -890,7 +890,7 @@ public class TestApisHandler extends OmeroServer {
 
         @Test
         @Override
-        void Check_Existing_Attachments_Deleted() throws ExecutionException, InterruptedException {
+        void Check_Existing_Attachments_Deleted() {
             // Empty because attachments can't be changed, see Check_Attachments_Sent
         }
     }
