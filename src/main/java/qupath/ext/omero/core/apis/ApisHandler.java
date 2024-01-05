@@ -377,6 +377,25 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
+     * See {@link WebclientApi#sendAttachment(long, Class, String, String)}.
+     */
+    public CompletableFuture<Boolean> sendAttachment(
+            long entityId,
+            Class<? extends RepositoryEntity> entityClass,
+            String attachmentName,
+            String attachmentContent
+    ) {
+        return webclientApi.sendAttachment(entityId, entityClass, attachmentName, attachmentContent);
+    }
+
+    /**
+     * See {@link WebclientApi#deleteAttachments(long, Class)}.
+     */
+    public CompletableFuture<Boolean> deleteAttachments(long entityId, Class<? extends RepositoryEntity> entityClass) {
+        return webclientApi.deleteAttachments(entityId, entityClass);
+    }
+
+    /**
      * <p>Attempt to retrieve the icon of an OMERO entity.</p>
      * <p>Icons for orphaned folders, projects, datasets, images, screens, plates, and plate acquisitions can be retrieved.</p>
      * <p>This function is asynchronous.</p>

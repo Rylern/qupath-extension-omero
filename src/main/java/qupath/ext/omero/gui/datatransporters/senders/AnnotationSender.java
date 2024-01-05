@@ -1,21 +1,32 @@
 package qupath.ext.omero.gui.datatransporters.senders;
 
+import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import qupath.ext.omero.core.entities.repositoryentities.serverentities.image.Image;
 import qupath.ext.omero.gui.UiUtilities;
 import qupath.ext.omero.gui.datatransporters.DataTransporter;
 import qupath.ext.omero.gui.datatransporters.forms.SendAnnotationForm;
 import qupath.ext.omero.imagesserver.OmeroImageServer;
 import qupath.lib.gui.QuPathGUI;
+import qupath.lib.gui.tools.MeasurementExporter;
 import qupath.lib.gui.viewer.QuPathViewer;
+import qupath.lib.objects.PathAnnotationObject;
+import qupath.lib.objects.PathDetectionObject;
 import qupath.lib.objects.PathObject;
 import qupath.fx.dialogs.Dialogs;
+import qupath.lib.projects.Project;
+import qupath.lib.projects.ProjectImageEntry;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -33,6 +44,10 @@ public class AnnotationSender implements DataTransporter {
 
     private static final Logger logger = LoggerFactory.getLogger(AnnotationSender.class);
     private static final ResourceBundle resources = UiUtilities.getResources();
+    private enum MessageType {
+        SUCCESS,
+        ERROR
+    }
 
     @Override
     public String getMenuTitle() {
@@ -67,7 +82,7 @@ public class AnnotationSender implements DataTransporter {
             );
 
             if (confirmed) {
-                Collection<PathObject> annotations = getAnnotations(viewer, annotationForm.areOnlySelectedAnnotationsSelected());
+                Collection<PathObject> annotations = getAnnotations(viewer, annotationForm.sendOnlySelectedAnnotations());
 
                 if (annotations.isEmpty()) {
                     Dialogs.showErrorMessage(
@@ -75,35 +90,50 @@ public class AnnotationSender implements DataTransporter {
                             resources.getString("DataTransporters.AnnotationsSender.noAnnotations")
                     );
                 } else {
-                    boolean success = omeroImageServer.sendPathObjects(annotations, annotationForm.deleteExistingDataSelected());
-                    if (success) {
-                        String title;
-                        String message = "";
+                    // The potential deletion of existing measurements must happen before the other requests
+                    CompletableFuture<Boolean> deleteExistingMeasurementsRequest = annotationForm.deleteExistingMeasurements() ?
+                            omeroImageServer.getClient().getApisHandler().deleteAttachments(omeroImageServer.getId(), Image.class) :
+                            CompletableFuture.completedFuture(false);
 
-                        if (annotationForm.deleteExistingDataSelected()) {
-                            message += resources.getString("DataTransporters.AnnotationsSender.existingAnnotationsDeleted") + "\n";
+                    deleteExistingMeasurementsRequest.thenApplyAsync(measurementsDeleted -> {
+                        Map<SendAnnotationForm.Choice, CompletableFuture<Boolean>> requests = createRequests(
+                                omeroImageServer,
+                                annotations,
+                                annotationForm.deleteExistingAnnotations(),
+                                annotationForm.sendAnnotationMeasurements(),
+                                annotationForm.sendDetectionMeasurements()
+                        );
+
+                        if (annotationForm.deleteExistingMeasurements()) {
+                            requests.put(
+                                    SendAnnotationForm.Choice.DELETE_EXISTING_MEASUREMENTS,
+                                    CompletableFuture.completedFuture(measurementsDeleted)
+                            );
                         }
 
-                        if (annotations.size() == 1) {
-                            title = resources.getString("DataTransporters.AnnotationsSender.1WrittenSuccessfully");
-                            message += resources.getString("DataTransporters.AnnotationsSender.1AnnotationWrittenSuccessfully");
-                        } else {
-                            title = resources.getString("DataTransporters.AnnotationsSender.XWrittenSuccessfully");
-                            message += MessageFormat.format(resources.getString("DataTransporters.AnnotationsSender.XAnnotationsWrittenSuccessfully"), annotations.size());
+                        return requests.entrySet().stream().collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                entry -> entry.getValue().join()
+                        ));
+                    }).thenAccept(statuses -> Platform.runLater(() -> {
+                        String successMessage = createMessageFromResponses(statuses, MessageType.SUCCESS);
+                        String errorMessage = createMessageFromResponses(statuses, MessageType.ERROR);
+
+                        if (!errorMessage.isEmpty()) {
+                            errorMessage += String.format("\n\n%s", resources.getString("DataTransporters.AnnotationsSender.notAllOperationsSucceeded"));
+                            Dialogs.showErrorMessage(
+                                    resources.getString("DataTransporters.AnnotationsSender.sendAnnotations"),
+                                    errorMessage
+                            );
                         }
 
-                        Dialogs.showInfoNotification(
-                                title,
-                                message
-                        );
-                    } else {
-                        Dialogs.showErrorNotification(
-                                annotations.size() == 1 ?
-                                        resources.getString("DataTransporters.AnnotationsSender.1AnnotationFailed") :
-                                        MessageFormat.format(resources.getString("DataTransporters.AnnotationsSender.XAnnotationFailed"), annotations.size()),
-                                resources.getString("DataTransporters.AnnotationsSender.seeLogs")
-                        );
-                    }
+                        if (!successMessage.isEmpty()) {
+                            Dialogs.showInfoNotification(
+                                    resources.getString("DataTransporters.AnnotationsSender.sendAnnotations"),
+                                    successMessage
+                            );
+                        }
+                    }));
                 }
             }
         } else {
@@ -120,5 +150,99 @@ public class AnnotationSender implements DataTransporter {
         } else {
             return viewer.getHierarchy() == null ? List.of() : viewer.getHierarchy().getAnnotationObjects();
         }
+    }
+
+    private static Map<SendAnnotationForm.Choice, CompletableFuture<Boolean>> createRequests(
+            OmeroImageServer omeroImageServer,
+            Collection<PathObject> annotations,
+            boolean deleteExistingAnnotations,
+            boolean sendAnnotationMeasurements,
+            boolean sendDetectionMeasurements
+    ) {
+        Map<SendAnnotationForm.Choice, CompletableFuture<Boolean>> requests = new HashMap<>();
+
+        requests.put(SendAnnotationForm.Choice.SEND_ANNOTATIONS, CompletableFuture.supplyAsync(() -> omeroImageServer.sendPathObjects(
+                annotations,
+                deleteExistingAnnotations
+        )));
+
+        if (sendAnnotationMeasurements) {
+            requests.put(
+                    SendAnnotationForm.Choice.SEND_ANNOTATION_MEASUREMENTS,
+                    getMeasureRequest(PathAnnotationObject.class, omeroImageServer)
+            );
+        }
+
+        if (sendDetectionMeasurements) {
+            requests.put(
+                    SendAnnotationForm.Choice.SEND_DETECTION_MEASUREMENTS,
+                    getMeasureRequest(PathDetectionObject.class, omeroImageServer)
+            );
+        }
+
+        return requests;
+    }
+
+    private static CompletableFuture<Boolean> getMeasureRequest(
+            Class<? extends qupath.lib.objects.PathObject> exportType,
+            OmeroImageServer omeroImageServer
+    ) {
+        QuPathGUI qupath = QuPathGUI.getInstance();
+
+        if (qupath.getProject() != null) {
+            Project<BufferedImage> project = qupath.getProject();
+
+            try (OutputStream outputStream = new ByteArrayOutputStream()) {
+                QuPathViewer viewer = qupath.getViewer();
+                ProjectImageEntry<BufferedImage> entry = project.getEntry(viewer.getImageData());
+
+                // The image must be saved because non saved measures won't be exported
+                entry.saveImageData(viewer.getImageData());
+
+                new MeasurementExporter()
+                        .exportType(exportType)
+                        .imageList(List.of(entry))
+                        .separator(",")
+                        .exportMeasurements(outputStream);
+
+                String title = String.format(
+                        "%s_%s_%s.csv",
+                        exportType.equals(PathAnnotationObject.class) ? "QP annotation table" : "QP detection table",
+                        project.getName().split("/")[0],
+                        new SimpleDateFormat("yyyyMMdd-HH'h'mm'm'ss").format(new Date())
+                );
+
+                return omeroImageServer.getClient().getApisHandler().sendAttachment(
+                        omeroImageServer.getId(),
+                        Image.class,
+                        title,
+                        outputStream.toString()
+                );
+            } catch (IOException e) {
+                logger.warn("Error when reading annotation measurements", e);
+            }
+        }
+        return CompletableFuture.completedFuture(false);
+    }
+
+    private static String createMessageFromResponses(Map<SendAnnotationForm.Choice, Boolean> statuses, MessageType messageType) {
+        return statuses.entrySet().stream()
+                .filter(entry -> switch (messageType) {
+                    case SUCCESS -> entry.getValue();
+                    case ERROR -> !entry.getValue();
+                })
+                .map(entry -> MessageFormat.format(
+                        resources.getString(entry.getValue() ?
+                                "DataTransporters.AnnotationsSender.operationSucceeded" :
+                                "DataTransporters.AnnotationsSender.operationFailed"
+                        ),
+                        resources.getString(switch (entry.getKey()) {
+                            case SEND_ANNOTATIONS -> "DataTransporters.AnnotationsSender.sendAnnotations";
+                            case DELETE_EXISTING_MEASUREMENTS -> "DataTransporters.AnnotationsSender.deleteExistingMeasurements";
+                            case SEND_ANNOTATION_MEASUREMENTS -> "DataTransporters.AnnotationsSender.sendAnnotationMeasurements";
+                            case SEND_DETECTION_MEASUREMENTS -> "DataTransporters.AnnotationsSender.sendDetectionMeasurements";
+                        })
+                ))
+                .collect(Collectors.joining("\n"));
     }
 }

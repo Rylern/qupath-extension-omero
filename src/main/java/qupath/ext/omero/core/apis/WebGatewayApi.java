@@ -262,13 +262,11 @@ class WebGatewayApi {
                 )
         ));
 
-
-
         if (uri.isPresent()) {
             return RequestSender.post(
                     uri.get(),
                     "",
-                    "",
+                    String.format("%s/iviewer/?images=%d", host, imageID),
                     token
             ).thenApply(response -> response.isPresent() && response.get().equals("true"));
         } else {

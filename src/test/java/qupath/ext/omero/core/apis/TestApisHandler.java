@@ -724,6 +724,12 @@ public class TestApisHandler extends OmeroServer {
 
             Assertions.assertEquals(expectedImageSettings, imageSettings);
         }
+
+        @Test
+        abstract void Check_Attachments_Sent() throws ExecutionException, InterruptedException;
+
+        @Test
+        abstract void Check_Existing_Attachments_Deleted() throws ExecutionException, InterruptedException;
     }
 
     @Nested
@@ -860,6 +866,32 @@ public class TestApisHandler extends OmeroServer {
             boolean success = apisHandler.writeROIs(imageId, rois, true).get();
 
             Assertions.assertFalse(success);
+        }
+
+        @Test
+        @Override
+        void Check_Attachments_Sent() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getRGBImage();
+
+            boolean success = apisHandler.sendAttachment(
+                    image.getId(),
+                    image.getClass(),
+                    "annotations.csv",
+                    """
+                    id,value
+                    1,test1
+                    2,test2
+                    3,test3
+                    """
+            ).get();
+
+            Assertions.assertFalse(success);
+        }
+
+        @Test
+        @Override
+        void Check_Existing_Attachments_Deleted() {
+            // Empty because attachments can't be changed, see Check_Attachments_Sent
         }
     }
 
@@ -1197,6 +1229,39 @@ public class TestApisHandler extends OmeroServer {
             List<Shape> rois = List.of(new Rectangle(10, 10, 100, 100), new Line(20, 20, 50, 50));
 
             boolean success = apisHandler.writeROIs(imageId, rois, true).get();
+
+            Assertions.assertTrue(success);
+        }
+
+        @Test
+        @Override
+        void Check_Attachments_Sent() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getRGBImage();
+
+            boolean success = apisHandler.sendAttachment(
+                    image.getId(),
+                    image.getClass(),
+                    "annotations.csv",
+                    """
+                    id,value
+                    1,test1
+                    2,test2
+                    3,test3
+                    """
+            ).get();
+
+            Assertions.assertTrue(success);
+        }
+
+        @Test
+        @Override
+        void Check_Existing_Attachments_Deleted() throws ExecutionException, InterruptedException {
+            Image image = OmeroServer.getRGBImage();
+            apisHandler.sendAttachment(image.getId(), image.getClass(),"annotations1.csv", "test1").get();
+            apisHandler.sendAttachment(image.getId(), image.getClass(),"annotations2.csv", "test2").get();
+            apisHandler.sendAttachment(image.getId(), image.getClass(),"annotations3.csv", "test3").get();
+
+            boolean success = apisHandler.deleteAttachments(image.getId(), image.getClass()).get();
 
             Assertions.assertTrue(success);
         }
