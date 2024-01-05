@@ -442,20 +442,26 @@ class WebclientApi implements AutoCloseable {
     /**
      * <p>Send a file to be attached to a server entity.</p>
      *
-     * @param entity  the entity to send the attachment to.
-     *                Must be an {@link Image}, {@link Dataset}, {@link Project},
-     *                {@link Screen}, {@link Plate} or {@link PlateAcquisition}
+     * @param entityId  the ID of the entity
+     * @param entityClass  the class of the entity.
+     *                     Must be an {@link Image}, {@link Dataset}, {@link Project},
+     *                     {@link Screen}, {@link Plate}, or {@link PlateAcquisition}.
      * @param attachmentName  the name of the file to send
      * @param attachmentContent  the content of the file to send
      * @return a CompletableFuture indicating the success of the operation
      * @throws IllegalArgumentException when the provided entity is not an image, dataset, project,
      * screen, plate, or plate acquisition
      */
-    public CompletableFuture<Boolean> sendAttachment(ServerEntity entity, String attachmentName, String attachmentContent) {
-        if (!TYPE_TO_URI_LABEL.containsKey(entity.getClass())) {
+    public CompletableFuture<Boolean> sendAttachment(
+            long entityId,
+            Class<? extends RepositoryEntity> entityClass,
+            String attachmentName,
+            String attachmentContent
+    ) {
+        if (!TYPE_TO_URI_LABEL.containsKey(entityClass)) {
             throw new IllegalArgumentException(String.format(
                     "The provided item (%s) is not an image, dataset, project, screen, plate, or plate acquisition.",
-                    entity
+                    entityClass
             ));
         }
 
@@ -471,7 +477,7 @@ class WebclientApi implements AutoCloseable {
                     attachmentContent,
                     token,
                     Map.of(
-                            TYPE_TO_URI_LABEL.get(entity.getClass()), String.valueOf(entity.getId()),
+                            TYPE_TO_URI_LABEL.get(entityClass), String.valueOf(entityId),
                             "index", ""
                     )
             ).thenApply(rawResponse -> {
@@ -487,7 +493,6 @@ class WebclientApi implements AutoCloseable {
                     return false;
                 }
             });
-
         } else {
             return CompletableFuture.completedFuture(false);
         }
@@ -533,8 +538,6 @@ class WebclientApi implements AutoCloseable {
                             }
                         })
                         .toList();
-
-                System.err.println(responses);
 
                 return responses.size() == attachmentIds.size();
             } else {

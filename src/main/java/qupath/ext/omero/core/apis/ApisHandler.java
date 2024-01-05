@@ -377,10 +377,15 @@ public class ApisHandler implements AutoCloseable {
     }
 
     /**
-     * See {@link WebclientApi#sendAttachment(ServerEntity, String, String)}.
+     * See {@link WebclientApi#sendAttachment(long, Class, String, String)}.
      */
-    public CompletableFuture<Boolean> sendAttachment(ServerEntity entity, String attachmentName, String attachmentContent) {
-        return webclientApi.sendAttachment(entity, attachmentName, attachmentContent);
+    public CompletableFuture<Boolean> sendAttachment(
+            long entityId,
+            Class<? extends RepositoryEntity> entityClass,
+            String attachmentName,
+            String attachmentContent
+    ) {
+        return webclientApi.sendAttachment(entityId, entityClass, attachmentName, attachmentContent);
     }
 
     /**

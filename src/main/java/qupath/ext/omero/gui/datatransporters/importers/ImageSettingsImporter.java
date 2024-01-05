@@ -44,7 +44,7 @@ public class ImageSettingsImporter implements DataTransporter {
 
     @Override
     public boolean canTransportData(boolean projectOpened, boolean isRGB) {
-        return projectOpened | !isRGB;
+        return projectOpened || !isRGB;
     }
 
     @Override

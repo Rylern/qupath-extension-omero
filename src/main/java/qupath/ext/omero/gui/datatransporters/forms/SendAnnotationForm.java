@@ -18,9 +18,21 @@ public class SendAnnotationForm extends VBox {
     private static final String ONLY_SELECTED_ANNOTATIONS = resources.getString("DataTransporters.Forms.SendAnnotations.onlySelectedAnnotations");
     private static final String ALL_ANNOTATIONS = resources.getString("DataTransporters.Forms.SendAnnotations.allAnnotations");
     @FXML
-    private ChoiceBox<String> selectedChoice;
+    private CheckBox deleteExistingAnnotations;
     @FXML
-    private CheckBox deleteExistingData;
+    private ChoiceBox<String> selectedAnnotationChoice;
+    @FXML
+    private CheckBox deleteExistingMeasurements;
+    @FXML
+    private CheckBox sendAnnotationMeasurements;
+    @FXML
+    private CheckBox sendDetectionMeasurements;
+    public enum Choice {
+        SEND_ANNOTATIONS,
+        DELETE_EXISTING_MEASUREMENTS,
+        SEND_ANNOTATION_MEASUREMENTS,
+        SEND_DETECTION_MEASUREMENTS
+    }
 
     /**
      * Creates the annotation form.
@@ -30,21 +42,42 @@ public class SendAnnotationForm extends VBox {
     public SendAnnotationForm() throws IOException {
         UiUtilities.loadFXML(this, SendAnnotationForm.class.getResource("send_annotation_form.fxml"));
 
-        selectedChoice.getItems().setAll(ONLY_SELECTED_ANNOTATIONS, ALL_ANNOTATIONS);
-        selectedChoice.getSelectionModel().select(ALL_ANNOTATIONS);
+        selectedAnnotationChoice.getItems().setAll(ONLY_SELECTED_ANNOTATIONS, ALL_ANNOTATIONS);
+        selectedAnnotationChoice.getSelectionModel().select(ALL_ANNOTATIONS);
+    }
+
+    /**
+     * @return whether existing annotations on the OMERO server should be deleted
+     */
+    public boolean deleteExistingAnnotations() {
+        return deleteExistingAnnotations.isSelected();
     }
 
     /**
      * @return whether only selected annotations should be sent to the server
      */
-    public boolean areOnlySelectedAnnotationsSelected() {
-        return selectedChoice.getSelectionModel().getSelectedItem().equals(ONLY_SELECTED_ANNOTATIONS);
+    public boolean sendOnlySelectedAnnotations() {
+        return selectedAnnotationChoice.getSelectionModel().getSelectedItem().equals(ONLY_SELECTED_ANNOTATIONS);
     }
 
     /**
-     * @return whether existing data on the OMERO server should be deleted
+     * @return whether existing measurements should be deleted
      */
-    public boolean deleteExistingDataSelected() {
-        return deleteExistingData.isSelected();
+    public boolean deleteExistingMeasurements() {
+        return deleteExistingMeasurements.isSelected();
+    }
+
+    /**
+     * @return whether annotation measurements should be sent
+     */
+    public boolean sendAnnotationMeasurements() {
+        return sendAnnotationMeasurements.isSelected();
+    }
+
+    /**
+     * @return whether detection measurements should be sent
+     */
+    public boolean sendDetectionMeasurements() {
+        return sendDetectionMeasurements.isSelected();
     }
 }
