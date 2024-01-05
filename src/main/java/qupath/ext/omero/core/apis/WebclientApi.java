@@ -475,6 +475,7 @@ class WebclientApi implements AutoCloseable {
                     uri.get(),
                     attachmentName,
                     attachmentContent,
+                    String.format("%s/webclient/", host),
                     token,
                     Map.of(
                             TYPE_TO_URI_LABEL.get(entityClass), String.valueOf(entityId),

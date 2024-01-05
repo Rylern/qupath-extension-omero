@@ -293,10 +293,20 @@ public class RequestSender {
      * @param fileContent  the content of the file to send
      * @param token  the <a href="https://docs.openmicroscopy.org/omero/5.6.0/developers/json-api.html#get-csrf-token">CSRF token</a>
      *               of the session
+     * @param referer  <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer">
+     *                 the absolute or partial address from which a resource has been requested.</a>
+     *                 It is needed for some requests
      * @param parameters  additional parameters to be included in the body of the request
      * @return the raw HTTP response with in text format, or an empty Optional if the request failed
      */
-    public static CompletableFuture<Optional<String>> post(URI uri, String fileName, String fileContent, String token, Map<String, String> parameters) {
+    public static CompletableFuture<Optional<String>> post(
+            URI uri,
+            String fileName,
+            String fileContent,
+            String referer,
+            String token,
+            Map<String, String> parameters
+    ) {
         String boundary = generateRandomAlphabeticText();
 
         String body =
@@ -318,7 +328,7 @@ public class RequestSender {
                 uri,
                 HttpRequest.BodyPublishers.ofString(body),
                 "multipart/form-data; boundary=" + boundary,
-                "http://localhost:4080/webclient/",
+                referer,
                 token
         )
                 .map(RequestSender::request)
