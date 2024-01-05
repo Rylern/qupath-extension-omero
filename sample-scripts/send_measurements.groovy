@@ -57,7 +57,7 @@ if (sendAnnotationMeasurements) {
                 .exportType(PathAnnotationObject.class)
                 .imageList(List.of(projectEntry))
                 .separator(",")
-                .exportMeasurements(outputStream);
+                .exportMeasurements(outputStream)
         def annotationMeasurements = outputStream.toString()
 
         // Send annotation measurements
@@ -89,7 +89,7 @@ if (sendDetectionMeasurements) {
                 .exportType(PathDetectionObject.class)
                 .imageList(List.of(projectEntry))
                 .separator(",")
-                .exportMeasurements(outputStream);
+                .exportMeasurements(outputStream)
         def detectionMeasurements = outputStream.toString()
 
         // Send detection measurements
