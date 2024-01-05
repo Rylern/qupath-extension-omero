@@ -325,7 +325,7 @@ class WebclientApi implements AutoCloseable {
                                         StandardCharsets.UTF_8
                                 )
                         ).getBytes(StandardCharsets.UTF_8),
-                        "",
+                        String.format("%s/webclient/", host),
                         token
                 ).thenApply(rawResponse -> {
                     if (rawResponse.isPresent()) {
@@ -370,7 +370,7 @@ class WebclientApi implements AutoCloseable {
                             "name=%s&",
                             imageName
                     ).getBytes(StandardCharsets.UTF_8),
-                    "",
+                    String.format("%s/webclient/", host),
                     token
             ).thenApply(rawResponse -> {
                 if (rawResponse.isPresent()) {
@@ -419,7 +419,7 @@ class WebclientApi implements AutoCloseable {
                             "%ssave=save",
                             body
                     ).getBytes(StandardCharsets.UTF_8),
-                    "",
+                    String.format("%s/webclient/", host),
                     token
             ).thenApply(rawResponse -> {
                 if (rawResponse.isPresent()) {
@@ -526,7 +526,7 @@ class WebclientApi implements AutoCloseable {
 
             if (uris.size() == attachmentIds.size()) {
                 List<String> responses = uris.stream()
-                        .map(uri -> RequestSender.post(uri, "", "", token))
+                        .map(uri -> RequestSender.post(uri, "", String.format("%s/webclient/", host), token))
                         .map(CompletableFuture::join)
                         .flatMap(Optional::stream)
                         .filter(rawResponse -> {
@@ -599,7 +599,7 @@ class WebclientApi implements AutoCloseable {
                     .map(body -> RequestSender.post(
                             uri,
                             body.getBytes(StandardCharsets.UTF_8),
-                            "",
+                            String.format("%s/webclient/", host),
                             token
                     ))
                     .forEach(CompletableFuture::join);
