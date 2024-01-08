@@ -27,12 +27,6 @@ public class SendAnnotationForm extends VBox {
     private CheckBox sendAnnotationMeasurements;
     @FXML
     private CheckBox sendDetectionMeasurements;
-    public enum Choice {
-        SEND_ANNOTATIONS,
-        DELETE_EXISTING_MEASUREMENTS,
-        SEND_ANNOTATION_MEASUREMENTS,
-        SEND_DETECTION_MEASUREMENTS
-    }
 
     /**
      * Creates the annotation form.

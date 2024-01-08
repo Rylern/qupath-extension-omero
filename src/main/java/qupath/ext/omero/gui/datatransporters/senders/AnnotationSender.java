@@ -48,6 +48,12 @@ public class AnnotationSender implements DataTransporter {
         SUCCESS,
         ERROR
     }
+    private enum Request {
+        SEND_ANNOTATIONS,
+        DELETE_EXISTING_MEASUREMENTS,
+        SEND_ANNOTATION_MEASUREMENTS,
+        SEND_DETECTION_MEASUREMENTS
+    }
 
     @Override
     public String getMenuTitle() {
@@ -96,7 +102,7 @@ public class AnnotationSender implements DataTransporter {
                             CompletableFuture.completedFuture(false);
 
                     deleteExistingMeasurementsRequest.thenApplyAsync(measurementsDeleted -> {
-                        Map<SendAnnotationForm.Choice, CompletableFuture<Boolean>> requests = createRequests(
+                        Map<Request, CompletableFuture<Boolean>> requests = createRequests(
                                 omeroImageServer,
                                 annotations,
                                 annotationForm.deleteExistingAnnotations(),
@@ -106,7 +112,7 @@ public class AnnotationSender implements DataTransporter {
 
                         if (annotationForm.deleteExistingMeasurements()) {
                             requests.put(
-                                    SendAnnotationForm.Choice.DELETE_EXISTING_MEASUREMENTS,
+                                    Request.DELETE_EXISTING_MEASUREMENTS,
                                     CompletableFuture.completedFuture(measurementsDeleted)
                             );
                         }
@@ -152,30 +158,30 @@ public class AnnotationSender implements DataTransporter {
         }
     }
 
-    private static Map<SendAnnotationForm.Choice, CompletableFuture<Boolean>> createRequests(
+    private static Map<Request, CompletableFuture<Boolean>> createRequests(
             OmeroImageServer omeroImageServer,
             Collection<PathObject> annotations,
             boolean deleteExistingAnnotations,
             boolean sendAnnotationMeasurements,
             boolean sendDetectionMeasurements
     ) {
-        Map<SendAnnotationForm.Choice, CompletableFuture<Boolean>> requests = new HashMap<>();
+        Map<Request, CompletableFuture<Boolean>> requests = new HashMap<>();
 
-        requests.put(SendAnnotationForm.Choice.SEND_ANNOTATIONS, CompletableFuture.supplyAsync(() -> omeroImageServer.sendPathObjects(
+        requests.put(Request.SEND_ANNOTATIONS, CompletableFuture.supplyAsync(() -> omeroImageServer.sendPathObjects(
                 annotations,
                 deleteExistingAnnotations
         )));
 
         if (sendAnnotationMeasurements) {
             requests.put(
-                    SendAnnotationForm.Choice.SEND_ANNOTATION_MEASUREMENTS,
+                    Request.SEND_ANNOTATION_MEASUREMENTS,
                     getMeasureRequest(PathAnnotationObject.class, omeroImageServer)
             );
         }
 
         if (sendDetectionMeasurements) {
             requests.put(
-                    SendAnnotationForm.Choice.SEND_DETECTION_MEASUREMENTS,
+                    Request.SEND_DETECTION_MEASUREMENTS,
                     getMeasureRequest(PathDetectionObject.class, omeroImageServer)
             );
         }
@@ -225,7 +231,7 @@ public class AnnotationSender implements DataTransporter {
         return CompletableFuture.completedFuture(false);
     }
 
-    private static String createMessageFromResponses(Map<SendAnnotationForm.Choice, Boolean> statuses, MessageType messageType) {
+    private static String createMessageFromResponses(Map<Request, Boolean> statuses, MessageType messageType) {
         return statuses.entrySet().stream()
                 .filter(entry -> switch (messageType) {
                     case SUCCESS -> entry.getValue();
